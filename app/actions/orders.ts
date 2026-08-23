@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { CartItem, OrderItem } from '@/lib/types/product'
 import { mapProducts } from '@/lib/utils/mapProduct'
 import { toNumber } from '@/lib/utils/format'
+import { legacyOrderValue, missingNotNullColumn } from '@/lib/utils/legacyOrderColumns'
 
 export async function createOrder(input: { items: CartItem[]; notes?: string }) {
   try {
@@ -52,19 +53,33 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
       user.email ||
       'Cliente'
     const customerEmail = user.email?.trim() || 'sin-email'
+    const notes = input.notes?.trim() || ''
+    const known = { name: customerName, email: customerEmail, notes, items }
 
-    // ponytail: la tabla real tiene customer_name/email NOT NULL (legado).
-    const { error: insertError } = await supabase.from('orders').insert({
+    // ponytail: la tabla real tiene NOT NULL de más; rellenamos y si falta otra, un reintento.
+    const row: Record<string, unknown> = {
       user_id: user.id,
       customer_name: customerName,
       customer_email: customerEmail,
+      shipping_address: notes || 'A coordinar por WhatsApp',
       items,
       total,
-      notes: input.notes?.trim() || null,
-    })
+      notes,
+    }
 
-    if (insertError) return { error: insertError.message }
-    return { success: true }
+    let lastError = ''
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const { error: insertError } = await supabase.from('orders').insert(row)
+      if (!insertError) return { success: true }
+
+      lastError = insertError.message
+      const column = missingNotNullColumn(lastError)
+      if (!column) break
+      if (column in row && row[column] != null) break
+      row[column] = legacyOrderValue(column, known)
+    }
+
+    return { error: lastError }
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : 'No se pudo guardar el pedido',
