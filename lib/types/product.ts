@@ -1,0 +1,40 @@
+export const PRODUCT_CATEGORIES = ['figuras', 'accesorios', 'mates'] as const
+
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  figuras: 'Figuras',
+  accesorios: 'Accesorios',
+  mates: 'Mates',
+}
+
+export type Product = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  category: ProductCategory
+  image_url: string | null
+  featured: boolean
+  stock: number
+  created_at: string
+}
+
+export type Profile = {
+  id: string
+  email: string | null
+  role: 'user' | 'admin'
+  created_at: string
+}
+
+export type CartItem = {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  image_url: string | null
+}
+
+export function isProductCategory(value: string): value is ProductCategory {
+  return (PRODUCT_CATEGORIES as readonly string[]).includes(value)
+}
