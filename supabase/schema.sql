@@ -228,6 +228,7 @@ create table if not exists public.orders (
 
 alter table public.orders add column if not exists user_id uuid references auth.users (id) on delete cascade;
 alter table public.orders add column if not exists customer_name text;
+alter table public.orders add column if not exists customer_email text;
 alter table public.orders add column if not exists items jsonb default '[]'::jsonb;
 alter table public.orders add column if not exists total numeric(10, 2) default 0;
 alter table public.orders add column if not exists notes text;

@@ -51,11 +51,13 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
       (typeof meta.name === 'string' && meta.name.trim()) ||
       user.email ||
       'Cliente'
+    const customerEmail = user.email?.trim() || 'sin-email'
 
-    // ponytail: la tabla real tiene customer_name NOT NULL (legado).
+    // ponytail: la tabla real tiene customer_name/email NOT NULL (legado).
     const { error: insertError } = await supabase.from('orders').insert({
       user_id: user.id,
       customer_name: customerName,
+      customer_email: customerEmail,
       items,
       total,
       notes: input.notes?.trim() || null,
