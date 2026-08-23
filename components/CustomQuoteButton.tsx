@@ -22,7 +22,7 @@ export default function CustomQuoteButton({
   const href = buildWhatsAppUrl(phone, formatCustomPrintQuote())
   const look =
     tone === 'onDark'
-      ? 'border border-[#f7f1e8]/20 text-[#f7f1e8] hover:bg-white/5'
+      ? 'border border-white/70 text-white hover:bg-white/10'
       : 'border border-line bg-card text-ink hover:bg-background'
   const pad = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-5 py-3 text-sm'
 

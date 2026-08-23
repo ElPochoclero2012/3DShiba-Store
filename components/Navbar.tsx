@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Menu, ShoppingCart, X } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useCartItemCount } from '@/lib/store/useCart'
-import CustomQuoteButton from '@/components/CustomQuoteButton'
+import BrandLogo from '@/components/BrandLogo'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
@@ -16,7 +16,6 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname()
-  const router = useRouter()
   const itemCount = useCartItemCount()
   const ready = useSyncExternalStore(
     () => () => {},
@@ -74,18 +73,13 @@ export default function Navbar() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    setUser(null)
-    setIsAdmin(false)
-    router.push('/')
-    router.refresh()
+    window.location.assign('/')
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-card/90 backdrop-blur">
+    <header className="sticky top-0 z-40 bg-shiba text-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-ink">
-          3D<span className="text-shiba">Shiba</span> Store
-        </Link>
+        <BrandLogo />
 
         <nav className="hidden items-center gap-6 md:flex">
           {NAV_LINKS.map((link) => (
@@ -93,7 +87,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className={`text-sm font-medium transition ${
-                pathname === link.href ? 'text-shiba' : 'text-ink/80 hover:text-shiba'
+                pathname === link.href ? 'text-white' : 'text-white/80 hover:text-white'
               }`}
             >
               {link.label}
@@ -103,24 +97,23 @@ export default function Navbar() {
             <Link
               href="/admin/dashboard"
               className={`text-sm font-medium transition ${
-                pathname.startsWith('/admin') ? 'text-shiba' : 'text-ink/80 hover:text-shiba'
+                pathname.startsWith('/admin') ? 'text-white' : 'text-white/80 hover:text-white'
               }`}
             >
               Admin
             </Link>
           )}
-          <CustomQuoteButton size="sm" />
         </nav>
 
         <div className="flex items-center gap-2">
           <Link
             href="/carrito"
-            className="relative rounded-full p-2 text-ink hover:bg-background"
+            className="relative rounded-full p-2 text-white hover:bg-white/15"
             aria-label="Carrito"
           >
             <ShoppingCart className="h-5 w-5" />
             {ready && itemCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-shiba px-1 text-center text-xs font-semibold text-white">
+              <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-white px-1 text-center text-xs font-semibold text-shiba">
                 {itemCount}
               </span>
             )}
@@ -130,14 +123,14 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden rounded-full border border-line px-3 py-1.5 text-sm font-medium text-ink hover:bg-background md:inline-flex"
+              className="hidden rounded-full border border-white/70 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/15 md:inline-flex"
             >
               Salir
             </button>
           ) : (
             <Link
               href="/login"
-              className="hidden rounded-full bg-shiba px-3 py-1.5 text-sm font-medium text-white hover:bg-shiba-dark md:inline-flex"
+              className="hidden rounded-full bg-white px-3 py-1.5 text-sm font-medium text-shiba hover:bg-white/90 md:inline-flex"
             >
               Ingresar
             </Link>
@@ -145,7 +138,7 @@ export default function Navbar() {
 
           <button
             type="button"
-            className="rounded-full p-2 text-ink hover:bg-background md:hidden"
+            className="rounded-full p-2 text-white hover:bg-white/15 md:hidden"
             onClick={() => setOpen((value) => !value)}
             aria-label="Menú"
           >
@@ -155,14 +148,14 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-card px-4 py-3 md:hidden">
+        <div className="border-t border-white/20 bg-shiba-dark px-4 py-3 md:hidden">
           <div className="flex flex-col gap-3">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-ink"
+                className="text-sm font-medium text-white"
               >
                 {link.label}
               </Link>
@@ -171,18 +164,17 @@ export default function Navbar() {
               <Link
                 href="/admin/dashboard"
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-ink"
+                className="text-sm font-medium text-white"
               >
                 Admin
               </Link>
             )}
-            <CustomQuoteButton className="w-full" />
             {user ? (
-              <button type="button" onClick={handleLogout} className="text-left text-sm font-medium text-ink">
+              <button type="button" onClick={handleLogout} className="text-left text-sm font-medium text-white">
                 Salir
               </button>
             ) : (
-              <Link href="/login" className="text-sm font-medium text-shiba">
+              <Link href="/login" className="text-sm font-medium text-white">
                 Ingresar
               </Link>
             )}

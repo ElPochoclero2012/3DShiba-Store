@@ -22,33 +22,33 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="relative overflow-hidden bg-ink text-[#f7f1e8]">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-shiba/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-10 h-56 w-56 rounded-full bg-shiba/20 blur-3xl" />
+      <section className="relative overflow-hidden bg-shiba text-white">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-20 md:grid-cols-2 md:items-center">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-shiba">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/80">
               Impresión 3D en Mar del Plata
             </p>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">
               Figuras, accesorios, mates, vasos y juegos. Impresos a pedido.
             </h1>
-            <p className="mt-4 max-w-xl text-base text-[#f7f1e8]/75">
+            <p className="mt-4 max-w-xl text-base text-white/85">
               Imprimimos en FDM lo que está en el catálogo, o el archivo que nos mandes.
-              No modelamos: si tenés el STL o 3MF, lo cotizamos por WhatsApp.
+              Si tenés el STL o 3MF, lo cotizamos por WhatsApp.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/productos"
-                className="rounded-full bg-shiba px-5 py-3 text-sm font-semibold text-white hover:bg-shiba-dark"
+                className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-shiba hover:bg-white/90"
               >
                 Ver catálogo
               </Link>
               <CustomQuoteButton tone="onDark" />
             </div>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <p className="text-sm text-[#f7f1e8]/70">Cómo funciona</p>
+          <div className="rounded-3xl border border-white/25 bg-white/10 p-6 backdrop-blur">
+            <p className="text-sm text-white/75">Cómo funciona</p>
             <ol className="mt-4 space-y-3 text-sm">
               <li>1. Elegís del catálogo o nos mandás tu archivo.</li>
               <li>2. Armás el pedido en la web, o pedís cotización por WhatsApp.</li>
@@ -105,8 +105,7 @@ export default async function HomePage() {
           <article>
             <h3 className="text-lg font-semibold text-ink">Traé tu archivo</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Si ya tenés el modelo, lo imprimimos a pedido. No hacemos modelado 3D.
-              La cotización va por WhatsApp.
+              Si ya tenés el archivo, lo imprimimos a pedido. La cotización va por WhatsApp.
             </p>
           </article>
         </div>

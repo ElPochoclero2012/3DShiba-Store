@@ -12,7 +12,8 @@ Fuente de verdad del producto. Actualizar este archivo cuando cambie una decisi�
 
 - **Solo impresión FDM.** No hay resina ni otras tecnologías. No vender ni filtrar “resina” en copy, categorías o admin.
 - **Pedidos a medida:** el cliente manda el archivo (STL/3MF/etc.). Canal WhatsApp (`CustomQuoteButton` + `formatCustomPrintQuote`). Sin formulario de cotización ni uploader.
-- **No modelamos.** Solo imprimimos a pedido. No decir que hacemos modelos 3D ni resina.
+- No decir que no modelamos. No mencionar resina.
+- Marca: celeste `#4db8c2` con letras blancas. Logo en `public/logo-3dshiba.jpg`. Instagram: `https://www.instagram.com/3dshiba.store/`
 - Tras el checkout WhatsApp, un modal pregunta si el mensaje salió. Solo si confirman que sí se vacía el carrito.
 
 ## Flujo de compra (crítico)

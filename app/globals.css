@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f1e8;
-  --foreground: #1a1410;
-  --shiba: #e8772e;
-  --shiba-dark: #c45a1a;
-  --ink: #1a1410;
-  --muted: #6b5e55;
-  --card: #fffaf4;
-  --line: #e6d9cc;
+  --background: #f3fafb;
+  --foreground: #16343a;
+  --shiba: #4db8c2;
+  --shiba-dark: #2f8f99;
+  --ink: #16343a;
+  --muted: #5a7a80;
+  --card: #ffffff;
+  --line: #cfe8eb;
 }
 
 @theme inline {
