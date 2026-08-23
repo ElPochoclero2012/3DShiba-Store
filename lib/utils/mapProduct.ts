@@ -28,7 +28,6 @@ export function mapProduct(row: Record<string, unknown>): Product {
     category,
     image_url: image,
     featured: Boolean(row.featured),
-    stock: Math.max(0, Math.trunc(toNumber(row.stock))),
     created_at: String(row.created_at ?? new Date().toISOString()),
   }
 }

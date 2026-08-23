@@ -69,30 +69,17 @@ export default function ProductForm({ product, onDone }: Props) {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Precio (ARS)</label>
-          <input
-            name="price"
-            type="number"
-            min={0}
-            step="1"
-            required
-            defaultValue={product?.price ?? 0}
-            className="w-full rounded-xl border border-line bg-background p-2.5"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Stock</label>
-          <input
-            name="stock"
-            type="number"
-            min={0}
-            step="1"
-            defaultValue={product?.stock ?? 0}
-            className="w-full rounded-xl border border-line bg-background p-2.5"
-          />
-        </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">Precio (ARS)</label>
+        <input
+          name="price"
+          type="number"
+          min={0}
+          step="1"
+          required
+          defaultValue={product?.price ?? 0}
+          className="w-full rounded-xl border border-line bg-background p-2.5"
+        />
       </div>
 
       <div>

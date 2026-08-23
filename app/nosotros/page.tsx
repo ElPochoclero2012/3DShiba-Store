@@ -3,14 +3,14 @@ import CustomQuoteButton from '@/components/CustomQuoteButton'
 
 export const metadata: Metadata = {
   title: 'Sobre nosotros',
-  description: '3DShiba Store: impresión 3D en Mar del Plata. Figuras, accesorios, mates, vasos y juegos.',
+  description: '3DShiba Store: impresión 3D en Mar de Cobo. Figuras, accesorios, mates, vasos y juegos.',
 }
 
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 text-ink">
       <p className="text-sm font-medium uppercase tracking-[0.18em] text-shiba-dark">
-        Mar del Plata
+        Mar de Cobo
       </p>
       <h1 className="mt-2 text-3xl font-bold md:text-4xl">Sobre nosotros</h1>
       <p className="mt-4 text-lg leading-relaxed text-muted">
@@ -29,8 +29,7 @@ export default function AboutPage() {
         <section className="rounded-2xl border border-line bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Dónde estamos</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Trabajamos desde Mar del Plata. Pago y entrega se coordinan en el mismo chat del
-            pedido.
+            Trabajamos desde Mar de Cobo, con amor.
           </p>
         </section>
       </div>

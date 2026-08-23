@@ -48,9 +48,7 @@ export default async function ProductDetailPage({
         </p>
         <h1 className="mt-2 text-3xl font-bold text-ink">{product.name}</h1>
         <p className="mt-4 text-2xl font-semibold text-ink">{formatPrice(product.price)}</p>
-        <p className="mt-2 text-sm text-muted">
-          {product.stock > 0 ? `${product.stock} en stock` : 'Consultar disponibilidad'}
-        </p>
+        <p className="mt-2 text-sm text-muted">Se imprime a pedido</p>
         {product.description && (
           <p className="mt-6 whitespace-pre-wrap leading-relaxed text-ink/80">{product.description}</p>
         )}

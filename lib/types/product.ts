@@ -24,7 +24,6 @@ export type Product = {
   category: ProductCategory
   image_url: string | null
   featured: boolean
-  stock: number
   created_at: string
 }
 

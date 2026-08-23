@@ -51,7 +51,6 @@ export async function upsertProduct(formData: FormData) {
     const price = toNumber(formData.get('price'))
     const category = String(formData.get('category') ?? '')
     const featured = formData.get('featured') === 'on'
-    const stock = Math.max(0, Math.trunc(toNumber(formData.get('stock'))))
     const file = formData.get('image')
 
     if (!name) return { error: 'El nombre es obligatorio' }
@@ -93,7 +92,6 @@ export async function upsertProduct(formData: FormData) {
       price,
       category,
       featured,
-      stock,
       ...(imageUrl ? { image_url: imageUrl } : {}),
     }
 

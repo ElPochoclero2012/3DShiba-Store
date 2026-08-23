@@ -14,7 +14,7 @@ create table if not exists public.products (
   category text not null default 'figuras',
   image_url text,
   featured boolean not null default false,
-  stock integer not null default 0,
+  stock integer not null default 0, -- legado; la tienda es a pedido, no se usa en la UI
   created_at timestamptz not null default now()
 );
 

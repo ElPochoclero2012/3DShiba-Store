@@ -5,7 +5,7 @@ Fuente de verdad del producto. Actualizar este archivo cuando cambie una decisi�
 ## Contexto general
 
 - **Nombre:** 3DShiba Store
-- **Tipo:** E-commerce de un emprendimiento de impresiones 3D (figuras, accesorios, mates, vasos, juegos). Ubicación de marca: Mar del Plata.
+- **Tipo:** E-commerce de un emprendimiento de impresiones 3D (figuras, accesorios, mates, vasos, juegos). Ubicación de marca: Mar de Cobo.
 - **Objetivo:** Tienda web moderna, rápida y segura: landing, catálogo con filtrado, autenticación de usuarios y panel administrativo.
 
 ## Alcance del taller
@@ -49,7 +49,7 @@ Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `p
 - Tabla `products` en schema `public`, lectura pública por RLS.
 - Bucket `product-images` con políticas de inserción y lectura.
 - Schema de referencia: `supabase/schema.sql`.
-- Categorías de producto: `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. Campo `featured` para la home.
+- Categorías de producto: `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. Campo `featured` para la home. No hay stock: todo es a pedido.
 
 ### Autenticación
 

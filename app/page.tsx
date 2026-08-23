@@ -28,7 +28,7 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-20 md:grid-cols-2 md:items-center">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/80">
-              Impresión 3D en Mar del Plata
+              Impresión 3D en Mar de Cobo
             </p>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">
               Figuras, accesorios, mates, vasos y juegos. Impresos a pedido.
