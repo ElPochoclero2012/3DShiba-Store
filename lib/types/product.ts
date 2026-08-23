@@ -51,6 +51,10 @@ export type Order = {
   total: number
   notes: string | null
   created_at: string
+  customer_name: string | null
+  customer_email: string | null
+  shipping_address: string | null
+  seen_at: string | null
 }
 
 export function isProductCategory(value: string): value is ProductCategory {

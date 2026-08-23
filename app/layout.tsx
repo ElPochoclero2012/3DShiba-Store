@@ -14,13 +14,28 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const siteDescription =
+  'Impresión 3D FDM a pedido: figuras, accesorios, mates, vasos y juegos. Mar de Cobo.'
+
 export const metadata: Metadata = {
+  metadataBase: new URL('https://3dshiba-store.vercel.app'),
   title: {
     default: '3DShiba Store',
     template: '%s · 3DShiba Store',
   },
-  description:
-    'Impresión 3D FDM a pedido: figuras, accesorios, mates, vasos y juegos. Mar de Cobo.',
+  description: siteDescription,
+  icons: {
+    icon: '/logo-3dshiba.jpg',
+    apple: '/logo-3dshiba.jpg',
+  },
+  openGraph: {
+    title: '3DShiba Store',
+    description: siteDescription,
+    siteName: '3DShiba Store',
+    locale: 'es_AR',
+    type: 'website',
+    images: [{ url: '/logo-3dshiba.jpg', alt: '3DShiba Store' }],
+  },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

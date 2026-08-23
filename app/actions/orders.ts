@@ -1,12 +1,19 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { CartItem, OrderItem } from '@/lib/types/product'
+import { requireAdmin } from '@/lib/utils/admin'
+import {
+  formatCheckoutNotes,
+  formatDeliveryLine,
+  type CheckoutDetails,
+} from '@/lib/utils/checkoutDetails'
+import { legacyOrderValue, missingNotNullColumn } from '@/lib/utils/legacyOrderColumns'
 import { mapProducts } from '@/lib/utils/mapProduct'
 import { toNumber } from '@/lib/utils/format'
-import { legacyOrderValue, missingNotNullColumn } from '@/lib/utils/legacyOrderColumns'
 
-export async function createOrder(input: { items: CartItem[]; notes?: string }) {
+export async function createOrder(input: { items: CartItem[]; details: CheckoutDetails }) {
   try {
     const supabase = await createClient()
     const {
@@ -19,6 +26,10 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
 
     if (!Array.isArray(input.items) || input.items.length === 0) {
       return { error: 'El carrito está vacío.' }
+    }
+
+    if (!input.details?.color || !input.details.material || !input.details.delivery) {
+      return { error: 'Elegí color, material y forma de entrega.' }
     }
 
     const ids = [...new Set(input.items.map((item) => item.id).filter(Boolean))]
@@ -53,7 +64,8 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
       user.email ||
       'Cliente'
     const customerEmail = user.email?.trim() || 'sin-email'
-    const notes = input.notes?.trim() || ''
+    const notes = formatCheckoutNotes(input.details)
+    const shippingAddress = formatDeliveryLine(input.details)
     const known = { name: customerName, email: customerEmail, notes, items }
 
     // ponytail: la tabla real tiene NOT NULL de más; rellenamos y si falta otra, un reintento.
@@ -61,7 +73,7 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
       user_id: user.id,
       customer_name: customerName,
       customer_email: customerEmail,
-      shipping_address: notes || 'A coordinar por WhatsApp',
+      shipping_address: shippingAddress,
       items,
       total,
       notes,
@@ -85,4 +97,26 @@ export async function createOrder(input: { items: CartItem[]; notes?: string }) 
       error: error instanceof Error ? error.message : 'No se pudo guardar el pedido',
     }
   }
+}
+
+export async function markOrderSeen(orderId: string) {
+  const { supabase, isAdmin } = await requireAdmin()
+  if (!isAdmin) return { error: 'No tenés permiso.' }
+  if (!orderId) return { error: 'Pedido inválido.' }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ seen_at: new Date().toISOString() })
+    .eq('id', orderId)
+
+  if (error) {
+    return {
+      error: error.message.includes('seen_at')
+        ? 'Falta la columna seen_at. Corré el bloque de orders en supabase/schema.sql.'
+        : error.message,
+    }
+  }
+
+  revalidatePath('/admin/pedidos')
+  return { success: true }
 }

@@ -42,70 +42,79 @@ No agregar pasarela de pago salvo pedido explícito.
 
 Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `proxy.ts` (no hay `middleware.ts`).
 
-## Estado actual
+## Estado actual (2026-08-23)
+
+La tienda está **en el aire** en Vercel con productos reales. El circuito viejo (login, catálogo, carrito → WhatsApp, crear producto en admin) ya se usó. Lo de abajo es lo que hay hoy, no un wishlist.
+
+### En producción / ya usado
+
+- Hay admin (rol en `profiles`) y productos en el catálogo (destacados en la home). No hay stock: se imprime a pedido.
+- Login email + Google. Errores de Auth en español (`lib/utils/authErrors.ts`). `next` sanitizado. Logout recarga `/`.
+- Agregar al carrito y checkout exigen sesión.
+- Checkout = WhatsApp. Tras abrir el chat, un modal: solo **Sí, ya lo envié** crea el pedido y vacía el carrito. Precios desde la DB.
+- La tabla live de `orders` es **legado** (no salió solo de `schema.sql`): exige `customer_name`, `customer_email`, `shipping_address` y puede pedir más NOT NULL. `createOrder` las rellena y, si aparece otra, completa esa columna en el mismo intento (`lib/utils/legacyOrderColumns.ts`).
+- El carrito vive en `localStorage` por usuario (`3dshiba-carts`): al salir se vacía en pantalla y al volver a entrar con la misma cuenta se restaura. Solo este navegador; no cruza dispositivos.
+- Confirm email está apagado en Supabase (el SMTP gratis es flojo). Promover admin: solo SQL Editor. RLS de `profiles`: REVOKE + trigger `protect_profile_role` (hay que haber corrido ese bloque).
+
+### En código, todavía sin testear en flujo real
+
+Subido / en el repo; el dueño **aún no lo recorrió** (pedido → admin → visto, ni color/entrega de punta a punta):
+
+1. **Admin de pedidos** — `/admin/pedidos` (el link Admin va acá). Lista fecha, cliente, email, items, notas y badge Nuevo. **Marcar como visto** escribe `seen_at`. Pestaña Productos sigue en `/admin/dashboard`.
+2. **Color / material / entrega en el carrito** — chips de color, PLA/PETG, retiro en Mar de Cobo o envío (zona obligatoria). Van al mensaje de WhatsApp y a `orders.notes` + `shipping_address`. Sin color y entrega no se confirma.
+3. **Plazos** — copy fijo: *5 a 10 días hábiles* (`LEAD_TIME_COPY` en `lib/utils/checkoutDetails.ts`). Está en el carrito y en `/nosotros`.
+4. **Favicon y preview al compartir** — logo en `icons` + Open Graph (`metadataBase` = URL de Vercel).
+
+Para que el admin vea **todos** los pedidos y pueda marcarlos vistos, falta correr en el SQL Editor (si no se corrió aún) el bloque de `seen_at` + policies **Admins can read all orders** / **Admins can update orders** al final de `supabase/schema.sql`. Sin eso, RLS solo deja ver los pedidos propios.
 
 ### Base de datos y storage
 
-- Tabla `products` en schema `public`, lectura pública por RLS.
-- Bucket `product-images` con políticas de inserción y lectura.
-- Schema de referencia: `supabase/schema.sql`.
-- Categorías de producto: `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. Campo `featured` para la home. No hay stock: todo es a pedido.
+- `products`: lectura pública. Categorías `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. `featured` en la home. La tabla live también tiene `title` y `slug` NOT NULL (el alta manda ambos).
+- `orders`: historial por usuario + listado admin. Schema de referencia: `supabase/schema.sql` (idempotente; la tabla vieja se altera, no se recrea).
+- Bucket `product-images` público.
 
-### Autenticación
+### Auth y admin
 
-- Email y Google OAuth configurados en el panel de Supabase.
-- Callback: `app/auth/callback/route.ts`.
-- Login / registro: `app/login/page.tsx`. Errores de Auth se traducen en `lib/utils/authErrors.ts`. El param `next` se sanitiza (`safeNextPath`) para evitar open redirect.
-- El rol admin vive solo en `profiles.role`. Un usuario logueado no puede UPDATE/INSERT su rol (RLS + REVOKE + trigger `protect_profile_role`). Promoción: SQL Editor. Hay que **correr el schema.sql actualizado en Supabase**.
-- Si al registrarse no llega mail y la sesión queda abierta, en Supabase → Authentication → Providers → Email está apagado **Confirm email**. La app no puede mandar el correo: lo manda Auth. El SMTP gratis de Supabase es limitado; en producción conviene SMTP propio (Resend, etc.).
-- Admin: `app/admin/layout.tsx` + `lib/utils/admin.ts` (rol `admin` en `profiles`). Sin sesión → `/login`. Sin rol admin → `/`.
+- Callback: `app/auth/callback/route.ts`. Login: `app/login/page.tsx`.
+- Admin: `app/admin/layout.tsx` + `lib/utils/admin.ts`. Sin sesión → `/login?next=/admin/pedidos`. Sin rol admin → `/`.
+- Google OAuth: callback de Google Console = `https://<ref>.supabase.co/auth/v1/callback`, no la URL de Vercel.
 
-### Carrito
-
-- Store: `lib/store/useCart.ts` — agregar, quitar, cantidades, vaciar, total, persistencia.
-- Agregar al carrito y comprar exigen sesión. Al confirmar el envío por WhatsApp se guarda un pedido en `orders` (precios desde la DB). Historial: `app/cuenta/page.tsx`. RLS: cada usuario lee e inserta solo los suyos. Correr el bloque `orders` de `schema.sql` en Supabase.
-
-### UI global
-
-- `components/Navbar.tsx` en `app/layout.tsx`: sesión (Supabase) + contador del carrito (Zustand).
-- `components/Footer.tsx` también está en el layout.
-
-### Superficies ya construidas
-
-Estas pantallas **ya existen** (no empezarlas de cero):
+### Superficies (no empezarlas de cero)
 
 | Ruta | Qué hace hoy |
 | --- | --- |
-| `app/page.tsx` | Hero, destacados y bloque FDM / archivo propio. |
-| `app/productos/page.tsx` | Catálogo con búsqueda, filtro por categoría y orden (nuevos / precio). |
-| `app/productos/[id]/page.tsx` | Ficha de producto. |
-| `app/carrito/page.tsx` | Resumen, checkout WhatsApp (solo logueado). |
-| `app/cuenta/page.tsx` | Perfil e historial de pedidos. |
-| `app/admin/dashboard/page.tsx` | Alta / edición / baja de productos e imágenes a Storage. |
+| `app/page.tsx` | Hero, destacados, bloque FDM / archivo propio. |
+| `app/productos/page.tsx` | Catálogo: búsqueda, categoría, orden. |
+| `app/productos/[id]/page.tsx` | Ficha. Cantidad en `AddToCartButton`. |
+| `app/carrito/page.tsx` | Items, color/material/entrega, WhatsApp. |
+| `app/cuenta/page.tsx` | Email + historial del usuario. |
+| `app/nosotros/page.tsx` | Taller, plazos, Mar de Cobo. |
+| `app/admin/pedidos/page.tsx` | Pedidos + visto. |
+| `app/admin/dashboard/page.tsx` | CRUD productos e imágenes. |
+| `app/login/page.tsx` | Email y Google. |
 
-## Objetivos del producto (spec, no backlog verde)
+Navbar: sesión, carrito, Mi cuenta / Salir, Admin si corresponde. Footer: logo + nosotros + Instagram.
 
-Así se definió cada superficie. Servir de guía al tocarlas, no como lista de “falta crear el archivo”.
+## Objetivos del producto (spec, no backlog)
 
-1. **Landing** — Hero, grilla de destacados desde Supabase, bloque informativo de impresión 3D.
-2. **Catálogo** — Grilla, buscador por texto, ordenamiento por precio.
-3. **Carrito / checkout WhatsApp** — Resumen, cantidades, “Finalizar compra” → mensaje tipo *Hola! Quiero encargar…* → `wa.me`.
-4. **Admin** — CRUD de productos protegido, upload a `product-images`.
+Guía al tocar superficies existentes:
+
+1. **Landing** — Hero, destacados, FDM / archivo propio.
+2. **Catálogo** — Grilla, búsqueda, orden.
+3. **Carrito / WhatsApp** — Color, material, entrega, cantidades → `wa.me`.
+4. **Admin** — Pedidos del día + CRUD de productos.
 
 ## Próximo paso
 
-Chequeo local (2026-08-22): build de producción, lint y rutas OK. Supabase responde. La tabla `products` está vacía (home sin destacados, catálogo vacío). `profiles` no se puede listar con la anon key (RLS correcto).
-
-Antes de Vercel:
-
-1. Crear un usuario, promoverlo a admin (`update profiles set role = 'admin' where email = '...'`) y cargar al menos un producto.
-2. En Vercel, setear las 3 vars de `.env.example`.
-3. En Supabase Auth, Site URL + Redirect URLs con el dominio público (abajo). Google OAuth sigue apuntando a `https://<proyecto>.supabase.co/auth/v1/callback`.
+1. Correr en Supabase el SQL de `seen_at` + policies admin de `orders` (si no está).
+2. **Probar lo nuevo:** login → carrito (color + retiro o envío) → WhatsApp → confirmar → **Mi cuenta** y **Admin → Pedidos** → marcar visto.
+3. Pushear a `main` para que Vercel despliegue (el dueño commitea/pushea).
+4. Si el plazo real no es 5–10 días hábiles, cambiar `LEAD_TIME_COPY`.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 
 - Panel: `https://vercel.com/marce9/3dshiba-store`
-- URL pública (cuando haya deploy): `https://3dshiba-store.vercel.app`
+- URL: `https://3dshiba-store.vercel.app`
 - Callback de la app: `https://3dshiba-store.vercel.app/auth/callback`
 
 ## No tocar salvo pedido explícito

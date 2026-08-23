@@ -6,6 +6,7 @@ import type { CartItem } from '@/lib/types/product'
 import { useCart } from '@/lib/store/useCart'
 import { createClient } from '@/lib/supabase/client'
 import { createOrder } from '@/app/actions/orders'
+import type { CheckoutDetails } from '@/lib/utils/checkoutDetails'
 import {
   buildWhatsAppUrl,
   formatWhatsAppOrder,
@@ -15,16 +16,16 @@ import {
 type Props = {
   items: CartItem[]
   email?: string | null
-  notes?: string
+  details?: CheckoutDetails
 }
 
-export default function WhatsAppCheckoutButton({ items, email, notes }: Props) {
+export default function WhatsAppCheckoutButton({ items, email, details }: Props) {
   const phone = getWhatsAppNumber()
   const clear = useCart((state) => state.clear)
   const [askConfirm, setAskConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const disabled = items.length === 0 || !phone || saving
+  const disabled = items.length === 0 || !phone || saving || !details
 
   const handleClick = async () => {
     if (disabled) return
@@ -40,11 +41,12 @@ export default function WhatsAppCheckoutButton({ items, email, notes }: Props) {
       return
     }
 
+    if (!details) return
     const message = formatWhatsAppOrder({
       items,
       origin: window.location.origin,
       email: email ?? user.email,
-      notes,
+      details,
     })
     window.open(buildWhatsAppUrl(phone, message), '_blank', 'noopener,noreferrer')
     setAskConfirm(true)
@@ -53,7 +55,11 @@ export default function WhatsAppCheckoutButton({ items, email, notes }: Props) {
   const confirmSent = async () => {
     setSaving(true)
     setError(null)
-    const result = await createOrder({ items, notes })
+    if (!details) {
+      setSaving(false)
+      return
+    }
+    const result = await createOrder({ items, details })
     setSaving(false)
 
     if (result.error) {
@@ -76,6 +82,9 @@ export default function WhatsAppCheckoutButton({ items, email, notes }: Props) {
         <MessageCircle className="h-5 w-5" />
         Confirmar pedido por WhatsApp
       </button>
+      {!details && items.length > 0 && (
+        <p className="text-sm text-muted">Elegí color, material y cómo lo recibís.</p>
+      )}
 
       {askConfirm && (
         <div

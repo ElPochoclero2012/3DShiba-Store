@@ -109,7 +109,7 @@ export default function Navbar() {
           ))}
           {isAdmin && (
             <Link
-              href="/admin/dashboard"
+              href="/admin/pedidos"
               className={`text-sm font-medium transition ${
                 pathname.startsWith('/admin') ? 'text-white' : 'text-white/80 hover:text-white'
               }`}
@@ -186,7 +186,7 @@ export default function Navbar() {
             ))}
             {isAdmin && (
               <Link
-                href="/admin/dashboard"
+                href="/admin/pedidos"
                 onClick={() => setOpen(false)}
                 className="text-sm font-medium text-white"
               >

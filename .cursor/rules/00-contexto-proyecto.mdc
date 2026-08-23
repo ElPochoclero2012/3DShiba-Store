@@ -6,10 +6,10 @@ alwaysApply: true
 
 Leé y respetá `CONTEXT.md` en la raíz del repo. Resumen no negociable:
 
-- E-commerce de impresiones 3D (figuras, accesorios, mates). Mar del Plata. **Solo FDM** (no resina).
-- Pedidos a medida: archivo del cliente o diseño **simple** (llaveros y similares) → WhatsApp directo. No hay modelado complejo ni configurador.
-- **No hay pasarela de pago.** Checkout = mensaje a `wa.me` (`NEXT_PUBLIC_WHATSAPP_NUMBER` + `lib/utils/formatWhatsAppOrder.ts`).
-- Stack: Next.js App Router + TypeScript + Tailwind + Supabase (RLS, Auth email/Google, Storage `product-images`) + Zustand para el carrito.
+- E-commerce de impresiones 3D (figuras, accesorios, mates, vasos, juegos). **Mar de Cobo.** **Solo FDM** (no resina).
+- Pedidos a medida: el cliente manda el archivo (STL/3MF) → WhatsApp (`CustomQuoteButton`). Sin configurador ni uploader.
+- **No hay pasarela de pago.** Checkout = `wa.me` + color/material/entrega en el carrito. Pedidos en `orders`; admin en `/admin/pedidos`.
+- Stack: Next.js App Router + TypeScript + Tailwind + Supabase (RLS, Auth email/Google, Storage `product-images`) + Zustand para el carrito (por usuario en este navegador).
 - En este Next la sesión se refresca en `proxy.ts`, no en `middleware.ts`.
-- Landing, catálogo, ficha, carrito y admin **ya existen**. No recrearlos; extender o corregir.
+- Landing, catálogo, ficha, carrito, cuenta, nosotros y admin **ya existen**. No recrearlos; extender o corregir.
 - Admin: rol `admin` en `profiles` (`lib/utils/admin.ts`).

@@ -233,6 +233,7 @@ alter table public.orders add column if not exists shipping_address text;
 alter table public.orders add column if not exists items jsonb default '[]'::jsonb;
 alter table public.orders add column if not exists total numeric(10, 2) default 0;
 alter table public.orders add column if not exists notes text;
+alter table public.orders add column if not exists seen_at timestamptz;
 alter table public.orders add column if not exists created_at timestamptz default now();
 
 create index if not exists orders_user_id_idx on public.orders (user_id);
@@ -254,3 +255,31 @@ create policy "Users can insert own orders"
 
 drop policy if exists "Users can update own orders" on public.orders;
 drop policy if exists "Users can delete own orders" on public.orders;
+
+drop policy if exists "Admins can read all orders" on public.orders;
+create policy "Admins can read all orders"
+  on public.orders for select
+  to authenticated
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = auth.uid() and profiles.role = 'admin'
+    )
+  );
+
+drop policy if exists "Admins can update orders" on public.orders;
+create policy "Admins can update orders"
+  on public.orders for update
+  to authenticated
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = auth.uid() and profiles.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = auth.uid() and profiles.role = 'admin'
+    )
+  );

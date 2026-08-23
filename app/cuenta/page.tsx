@@ -1,44 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { Order, OrderItem } from '@/lib/types/product'
-import { formatDateTime, formatPrice, toNumber } from '@/lib/utils/format'
-
-function mapOrders(rows: unknown): Order[] {
-  if (!Array.isArray(rows)) return []
-  return rows.flatMap((row) => {
-    if (!row || typeof row !== 'object') return []
-    const data = row as Record<string, unknown>
-    const items = Array.isArray(data.items)
-      ? data.items.flatMap((item): OrderItem[] => {
-          if (!item || typeof item !== 'object') return []
-          const line = item as Record<string, unknown>
-          const id = String(line.id ?? '')
-          if (!id) return []
-          return [
-            {
-              id,
-              name: String(line.name ?? 'Producto'),
-              price: toNumber(line.price),
-              quantity: Math.max(1, Math.trunc(toNumber(line.quantity))),
-              image_url: typeof line.image_url === 'string' ? line.image_url : null,
-            },
-          ]
-        })
-      : []
-
-    return [
-      {
-        id: String(data.id ?? ''),
-        user_id: String(data.user_id ?? ''),
-        items,
-        total: toNumber(data.total),
-        notes: typeof data.notes === 'string' ? data.notes : null,
-        created_at: String(data.created_at ?? ''),
-      },
-    ]
-  }).filter((order) => order.id)
-}
+import { formatDateTime, formatPrice } from '@/lib/utils/format'
+import { mapOrders } from '@/lib/utils/mapOrder'
 
 export default async function AccountPage() {
   const supabase = await createClient()
@@ -96,7 +60,7 @@ export default async function AccountPage() {
                 ))}
               </ul>
               {order.notes && (
-                <p className="mt-3 text-sm text-muted">Notas: {order.notes}</p>
+                <p className="mt-3 whitespace-pre-line text-sm text-muted">{order.notes}</p>
               )}
             </li>
           ))}

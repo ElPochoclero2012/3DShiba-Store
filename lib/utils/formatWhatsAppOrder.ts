@@ -1,13 +1,19 @@
 import type { CartItem } from '@/lib/types/product'
+import {
+  formatCheckoutNotes,
+  LEAD_TIME_COPY,
+  type CheckoutDetails,
+} from '@/lib/utils/checkoutDetails'
 import { formatPrice, toNumber } from '@/lib/utils/format'
 
 export function formatWhatsAppOrder(params: {
   items: CartItem[]
   origin: string
   email?: string | null
+  details?: CheckoutDetails
   notes?: string
 }): string {
-  const { items, origin, email, notes } = params
+  const { items, origin, email, details } = params
   const lines: string[] = [
     'Hola! Quiero hacer un pedido en 3DShiba Store',
     '',
@@ -35,9 +41,12 @@ export function formatWhatsAppOrder(params: {
     lines.push(`Email: ${email}`)
   }
 
-  const trimmedNotes = notes?.trim()
-  if (trimmedNotes) {
-    lines.push(`Notas: ${trimmedNotes}`)
+  if (details) {
+    lines.push(formatCheckoutNotes(details))
+    lines.push(LEAD_TIME_COPY)
+  } else {
+    const trimmedNotes = params.notes?.trim()
+    if (trimmedNotes) lines.push(`Notas: ${trimmedNotes}`)
   }
 
   return lines.join('\n').trim()

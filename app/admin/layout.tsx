@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import AdminNav from '@/components/admin/AdminNav'
 import { requireAdmin } from '@/lib/utils/admin'
 
 export default async function AdminLayout({
@@ -9,12 +10,17 @@ export default async function AdminLayout({
   const { user, isAdmin } = await requireAdmin()
 
   if (!user) {
-    redirect('/login?next=/admin/dashboard')
+    redirect('/login?next=/admin/pedidos')
   }
 
   if (!isAdmin) {
     redirect('/')
   }
 
-  return <div className="min-h-full bg-background">{children}</div>
+  return (
+    <div className="min-h-full bg-background">
+      <AdminNav />
+      {children}
+    </div>
+  )
 }

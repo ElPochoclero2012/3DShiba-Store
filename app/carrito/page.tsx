@@ -5,7 +5,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useCart, useCartTotal } from '@/lib/store/useCart'
+import CheckoutOptions, { type CheckoutDraft } from '@/components/CheckoutOptions'
 import WhatsAppCheckoutButton from '@/components/WhatsAppCheckoutButton'
+import { toCheckoutDetails } from '@/lib/utils/checkoutDetails'
 import { formatPrice, toNumber } from '@/lib/utils/format'
 import { formatWhatsAppOrder, getWhatsAppNumber } from '@/lib/utils/formatWhatsAppOrder'
 
@@ -19,7 +21,13 @@ export default function CartPage() {
     () => true,
     () => false
   )
-  const [notes, setNotes] = useState('')
+  const [checkout, setCheckout] = useState<CheckoutDraft>({
+    color: '',
+    material: 'PLA',
+    delivery: '',
+    zone: '',
+    notes: '',
+  })
   const [email, setEmail] = useState<string | null>(null)
   const [authReady, setAuthReady] = useState(false)
   const origin = ready ? window.location.origin : ''
@@ -32,15 +40,17 @@ export default function CartPage() {
     })
   }, [])
 
+  const details = toCheckoutDetails(checkout) ?? undefined
   const preview = useMemo(
     () =>
       formatWhatsAppOrder({
         items,
         origin: origin || 'https://3dshibastore.local',
         email,
-        notes,
+        details,
+        notes: checkout.notes,
       }),
-    [items, origin, email, notes]
+    [items, origin, email, details, checkout.notes]
   )
 
   return (
@@ -114,16 +124,7 @@ export default function CartPage() {
               <span>{formatPrice(total)}</span>
             </div>
 
-            <label className="block text-sm font-medium text-ink">
-              Notas para el pedido
-              <textarea
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                rows={3}
-                placeholder="Color, zona de entrega, alguna nota..."
-                className="mt-1 w-full rounded-xl border border-line bg-background p-3 text-sm"
-              />
-            </label>
+            <CheckoutOptions value={checkout} onChange={setCheckout} />
 
             {authReady && !email && (
               <p className="text-sm text-ink">
@@ -135,7 +136,7 @@ export default function CartPage() {
               </p>
             )}
 
-            <WhatsAppCheckoutButton items={items} email={email} notes={notes} />
+            <WhatsAppCheckoutButton items={items} email={email} details={details} />
 
             {!getWhatsAppNumber() && (
               <p className="text-sm text-red-700">
