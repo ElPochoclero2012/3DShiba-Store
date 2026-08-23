@@ -12,6 +12,17 @@ function asError(error: unknown) {
   return error instanceof Error ? error.message : 'No se pudo guardar el producto'
 }
 
+function slugFromName(name: string, id: string) {
+  const base = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48)
+  return `${base || 'producto'}-${id.slice(0, 8)}`
+}
+
 function storagePathFromUrl(url: string | null | undefined) {
   if (!url) return null
   const marker = '/product-images/'
@@ -73,10 +84,11 @@ export async function upsertProduct(formData: FormData) {
       imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl
     }
 
-    // ponytail: la DB real tiene title NOT NULL (legado) y name (schema.sql). Escribir las dos.
+    // ponytail: la DB real tiene title + slug NOT NULL (legado) además de name.
     const payload = {
       name,
       title: name,
+      slug: slugFromName(name, productId),
       description: description || null,
       price,
       category,

@@ -20,6 +20,7 @@ create table if not exists public.products (
 
 alter table public.products add column if not exists name text;
 alter table public.products add column if not exists title text;
+alter table public.products add column if not exists slug text;
 alter table public.products add column if not exists description text;
 alter table public.products add column if not exists price numeric(10, 2);
 alter table public.products add column if not exists category text;
