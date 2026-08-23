@@ -12,6 +12,7 @@ import BrandLogo from '@/components/BrandLogo'
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
   { href: '/productos', label: 'Catálogo' },
+  { href: '/nosotros', label: 'Sobre nosotros' },
 ]
 
 export default function Navbar() {
@@ -77,7 +78,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-shiba text-white">
+    <header className="sticky top-0 z-40 bg-shiba-dark text-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <BrandLogo />
 

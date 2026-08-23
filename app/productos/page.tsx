@@ -54,7 +54,7 @@ export default async function ProductsPage({
             {q ? ` · “${q}”` : ''}
           </p>
         </div>
-        <CustomQuoteButton />
+        <CustomQuoteButton tone="onLight" />
       </div>
 
       <CatalogFilters

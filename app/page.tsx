@@ -22,7 +22,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="relative overflow-hidden bg-shiba text-white">
+      <section className="relative overflow-hidden bg-shiba-dark text-white">
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-20 md:grid-cols-2 md:items-center">
@@ -49,7 +49,7 @@ export default async function HomePage() {
           </div>
           <div className="rounded-3xl border border-white/25 bg-white/10 p-6 backdrop-blur">
             <p className="text-sm text-white/75">Cómo funciona</p>
-            <ol className="mt-4 space-y-3 text-sm">
+            <ol className="mt-4 space-y-3 text-sm text-white">
               <li>1. Elegís del catálogo o nos mandás tu archivo.</li>
               <li>2. Armás el pedido en la web, o pedís cotización por WhatsApp.</li>
               <li>3. Coordinamos pago y entrega por chat.</li>
