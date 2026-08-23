@@ -73,8 +73,10 @@ export async function upsertProduct(formData: FormData) {
       imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl
     }
 
+    // ponytail: la DB real tiene title NOT NULL (legado) y name (schema.sql). Escribir las dos.
     const payload = {
       name,
+      title: name,
       description: description || null,
       price,
       category,

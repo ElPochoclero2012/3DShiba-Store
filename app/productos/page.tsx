@@ -25,7 +25,8 @@ export default async function ProductsPage({
   let query = supabase.from('products').select('*')
 
   if (q) {
-    query = query.ilike('name', `%${q}%`)
+    const safe = q.replace(/[%_,]/g, ' ')
+    query = query.or(`name.ilike.%${safe}%,title.ilike.%${safe}%`)
   }
   if (category) {
     query = query.eq('category', category)

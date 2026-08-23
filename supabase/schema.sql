@@ -19,6 +19,7 @@ create table if not exists public.products (
 );
 
 alter table public.products add column if not exists name text;
+alter table public.products add column if not exists title text;
 alter table public.products add column if not exists description text;
 alter table public.products add column if not exists price numeric(10, 2);
 alter table public.products add column if not exists category text;
@@ -26,6 +27,9 @@ alter table public.products add column if not exists image_url text;
 alter table public.products add column if not exists featured boolean default false;
 alter table public.products add column if not exists stock integer default 0;
 alter table public.products add column if not exists created_at timestamptz default now();
+
+update public.products set title = name where (title is null or title = '') and name is not null;
+update public.products set name = title where (name is null or name = '') and title is not null;
 
 create index if not exists products_category_idx on public.products (category);
 create index if not exists products_featured_idx on public.products (featured);
