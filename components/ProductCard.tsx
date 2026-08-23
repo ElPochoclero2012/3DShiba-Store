@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CATEGORY_LABELS, type Product } from '@/lib/types/product'
 import { useCart } from '@/lib/store/useCart'
 import { formatPrice } from '@/lib/utils/format'
+import { requireLogin } from '@/lib/utils/requireLogin'
 
 export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCart((state) => state.addItem)
@@ -37,11 +38,14 @@ export default function ProductCard({ product }: { product: Product }) {
         <button
           type="button"
           onClick={() =>
-            addItem({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image_url: product.image_url,
+            void requireLogin().then((ok) => {
+              if (!ok) return
+              addItem({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image_url: product.image_url,
+              })
             })
           }
           className="mt-1 rounded-full bg-shiba px-4 py-2 text-sm font-medium text-white hover:bg-shiba-dark"

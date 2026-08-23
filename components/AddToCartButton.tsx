@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Product } from '@/lib/types/product'
 import { useCart } from '@/lib/store/useCart'
+import { requireLogin } from '@/lib/utils/requireLogin'
 
 function clampQty(value: number) {
   if (!Number.isFinite(value)) return 1
@@ -14,7 +15,8 @@ export default function AddToCartButton({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
-  const add = () => {
+  const add = async () => {
+    if (!(await requireLogin())) return
     const qty = clampQty(quantity)
     addItem({
       id: product.id,
@@ -59,7 +61,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
       </label>
       <button
         type="button"
-        onClick={add}
+        onClick={() => void add()}
         className="rounded-full bg-shiba px-6 py-3 text-sm font-semibold text-white hover:bg-shiba-dark"
       >
         {added ? `Agregado (${clampQty(quantity)})` : 'Agregar al carrito'}

@@ -63,7 +63,7 @@ Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `p
 ### Carrito
 
 - Store: `lib/store/useCart.ts` — agregar, quitar, cantidades, vaciar, total, persistencia.
-- Comprar exige sesión. Al confirmar el envío por WhatsApp se guarda un pedido en `orders` (precios desde la DB). Historial: `app/cuenta/page.tsx`. RLS: cada usuario lee e inserta solo los suyos. Correr el bloque `orders` de `schema.sql` en Supabase.
+- Agregar al carrito y comprar exigen sesión. Al confirmar el envío por WhatsApp se guarda un pedido en `orders` (precios desde la DB). Historial: `app/cuenta/page.tsx`. RLS: cada usuario lee e inserta solo los suyos. Correr el bloque `orders` de `schema.sql` en Supabase.
 
 ### UI global
 
