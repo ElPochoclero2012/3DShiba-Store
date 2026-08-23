@@ -23,7 +23,7 @@ function LoginForm() {
     setMessage(null)
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -33,10 +33,19 @@ function LoginForm() {
 
       if (error) {
         setMessage({ type: 'error', text: error.message })
+      } else if (data.session) {
+        // Confirm email está apagado en Supabase: no manda correo y deja la sesión lista.
+        router.push(next)
+        router.refresh()
+      } else if (!data.user?.identities?.length) {
+        setMessage({
+          type: 'error',
+          text: 'Ese correo ya está registrado. Iniciá sesión.',
+        })
       } else {
         setMessage({
           type: 'success',
-          text: '¡Registro exitoso! Te enviamos un correo de confirmación. Revisá tu casilla (y el SPAM).',
+          text: 'Te enviamos un correo de confirmación. Revisá la casilla y el SPAM.',
         })
       }
     } else {
