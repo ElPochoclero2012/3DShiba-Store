@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Menu, ShoppingCart, X } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+import { bindCartSession, whenCartReady } from '@/lib/store/bindCartSession'
 import { useCartItemCount } from '@/lib/store/useCart'
 import BrandLogo from '@/components/BrandLogo'
 
@@ -29,11 +30,15 @@ export default function Navbar() {
 
   useEffect(() => {
     const supabase = createClient()
+    let booted = false
 
     const load = async () => {
+      await whenCartReady()
       const {
         data: { user: current },
       } = await supabase.auth.getUser()
+      bindCartSession(current?.id ?? null)
+      booted = true
       setUser(current)
 
       if (!current) {
@@ -54,7 +59,10 @@ export default function Navbar() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // ponytail: INITIAL_SESSION can race getUser; first bind waits for load().
+      if (!booted && event === 'INITIAL_SESSION') return
+      void whenCartReady().then(() => bindCartSession(session?.user?.id ?? null))
       setUser(session?.user ?? null)
       if (!session?.user) {
         setIsAdmin(false)
@@ -72,6 +80,11 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = async () => {
+    if (user) {
+      await whenCartReady()
+      bindCartSession(user.id)
+      bindCartSession(null)
+    }
     const supabase = createClient()
     await supabase.auth.signOut()
     window.location.assign('/')
