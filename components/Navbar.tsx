@@ -114,7 +114,7 @@ export default function Navbar() {
           >
             <ShoppingCart className="h-5 w-5" />
             {ready && itemCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-white px-1 text-center text-xs font-semibold text-shiba">
+              <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-white px-1 text-center text-xs font-semibold text-ink">
                 {itemCount}
               </span>
             )}
@@ -131,7 +131,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="hidden rounded-full bg-white px-3 py-1.5 text-sm font-medium text-shiba hover:bg-white/90 md:inline-flex"
+              className="hidden rounded-full border border-white/70 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 md:inline-flex"
             >
               Ingresar
             </Link>

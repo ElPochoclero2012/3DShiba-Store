@@ -40,7 +40,7 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/productos"
-                className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-shiba hover:bg-white/90"
+                className="rounded-full border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
               >
                 Ver catálogo
               </Link>
