@@ -139,6 +139,34 @@ create policy "Users can read own profile"
 -- El rol se cambia solo desde el SQL Editor (evitar recursión RLS y auto-promoción).
 drop policy if exists "Admins can read all profiles" on public.profiles;
 drop policy if exists "Users can update own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+
+revoke insert, update, delete on public.profiles from anon, authenticated;
+grant select on public.profiles to authenticated;
+
+create or replace function public.protect_profile_role()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Con sesión de usuario (anon/authenticated) nadie puede ponerse admin.
+  -- El SQL Editor no tiene JWT (auth.uid() es null) y sí puede promover.
+  if tg_op = 'INSERT' and new.role is distinct from 'user' and auth.uid() is not null then
+    new.role := 'user';
+  end if;
+
+  if tg_op = 'UPDATE' and new.role is distinct from old.role and auth.uid() is not null then
+    raise exception 'No se puede cambiar el rol';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_role on public.profiles;
+create trigger protect_profile_role
+  before insert or update on public.profiles
+  for each row execute procedure public.protect_profile_role();
 
 -- =============================================================================
 -- Storage: product-images

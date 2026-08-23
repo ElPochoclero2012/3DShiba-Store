@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import ProductCard from '@/components/ProductCard'
 import CatalogFilters from '@/components/CatalogFilters'
+import CustomQuoteButton from '@/components/CustomQuoteButton'
 import { CATEGORY_LABELS, PRODUCT_CATEGORIES, isProductCategory } from '@/lib/types/product'
 import { mapProducts } from '@/lib/utils/mapProduct'
 
@@ -45,11 +46,16 @@ export default async function ProductsPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold text-ink">Catálogo</h1>
-      <p className="mt-2 text-muted">
-        {category ? CATEGORY_LABELS[category] : 'Todas las categorías'}
-        {q ? ` · “${q}”` : ''}
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-ink">Catálogo</h1>
+          <p className="mt-2 text-muted">
+            {category ? CATEGORY_LABELS[category] : 'Todas las categorías'}
+            {q ? ` · “${q}”` : ''}
+          </p>
+        </div>
+        <CustomQuoteButton />
+      </div>
 
       <CatalogFilters
         q={q}

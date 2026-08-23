@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { authErrorMessage, safeNextPath } from '@/lib/utils/authErrors'
 
 function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -12,7 +13,7 @@ function LoginForm() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') || '/'
+  const next = safeNextPath(searchParams.get('next'))
   const authError = searchParams.get('error')
 
   const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +38,7 @@ function LoginForm() {
       })
 
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        setMessage({ type: 'error', text: authErrorMessage(error) })
       } else if (data.session) {
         // Confirm email está apagado en Supabase: no manda correo y deja la sesión lista.
         router.push(next)
@@ -57,7 +58,7 @@ function LoginForm() {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        setMessage({ type: 'error', text: authErrorMessage(error, 'Email o contraseña incorrectos.') })
       } else {
         router.push(next)
         router.refresh()

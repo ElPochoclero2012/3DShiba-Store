@@ -7,6 +7,7 @@ import { Menu, ShoppingCart, X } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useCartItemCount } from '@/lib/store/useCart'
+import CustomQuoteButton from '@/components/CustomQuoteButton'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
@@ -108,6 +109,7 @@ export default function Navbar() {
               Admin
             </Link>
           )}
+          <CustomQuoteButton size="sm" />
         </nav>
 
         <div className="flex items-center gap-2">
@@ -174,6 +176,7 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+            <CustomQuoteButton className="w-full" />
             {user ? (
               <button type="button" onClick={handleLogout} className="text-left text-sm font-medium text-ink">
                 Salir

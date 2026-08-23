@@ -5,15 +5,15 @@ Fuente de verdad del producto. Actualizar este archivo cuando cambie una decisi�
 ## Contexto general
 
 - **Nombre:** 3DShiba Store
-- **Tipo:** E-commerce de un emprendimiento de impresiones 3D (figuras, accesorios, mates). Ubicación de marca: Mar del Plata.
+- **Tipo:** E-commerce de un emprendimiento de impresiones 3D (figuras, accesorios, mates, vasos, juegos). Ubicación de marca: Mar del Plata.
 - **Objetivo:** Tienda web moderna, rápida y segura: landing, catálogo con filtrado, autenticación de usuarios y panel administrativo.
 
 ## Alcance del taller
 
 - **Solo impresión FDM.** No hay resina ni otras tecnologías. No vender ni filtrar “resina” en copy, categorías o admin.
-- **Pedidos a medida:** se aceptan si el cliente manda el archivo (STL/3MF/etc.) o si el diseño es **simple**. En ambos casos el canal es WhatsApp (`wa.me`), sin formulario de cotización ni uploader propio salvo pedido explícito.
-- **Personalizado real:** poco. Cosas simples (llaveros, variaciones chicas). No asumir modelado complejo, mates con diseño a medida elaborado, ni un configurador de productos.
-- La home (`app/page.tsx`) todavía habla de FDM/resina y “mates personalizables” como oferta fuerte: es copy viejo; el alcance de esta sección manda. Corregirlo cuando se toque esa superficie.
+- **Pedidos a medida:** el cliente manda el archivo (STL/3MF/etc.). Canal WhatsApp (`CustomQuoteButton` + `formatCustomPrintQuote`). Sin formulario de cotización ni uploader.
+- **No modelamos.** Solo imprimimos a pedido. No decir que hacemos modelos 3D ni resina.
+- Tras el checkout WhatsApp, un modal pregunta si el mensaje salió. Solo si confirman que sí se vacía el carrito.
 
 ## Flujo de compra (crítico)
 
@@ -47,13 +47,14 @@ Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `p
 - Tabla `products` en schema `public`, lectura pública por RLS.
 - Bucket `product-images` con políticas de inserción y lectura.
 - Schema de referencia: `supabase/schema.sql`.
-- Categorías de producto: `figuras`, `accesorios`, `mates`. Campo `featured` para la home.
+- Categorías de producto: `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. Campo `featured` para la home.
 
 ### Autenticación
 
 - Email y Google OAuth configurados en el panel de Supabase.
 - Callback: `app/auth/callback/route.ts`.
-- Login / registro: `app/login/page.tsx` (verificación de correo, errores, Google).
+- Login / registro: `app/login/page.tsx`. Errores de Auth se traducen en `lib/utils/authErrors.ts`. El param `next` se sanitiza (`safeNextPath`) para evitar open redirect.
+- El rol admin vive solo en `profiles.role`. Un usuario logueado no puede UPDATE/INSERT su rol (RLS + REVOKE + trigger `protect_profile_role`). Promoción: SQL Editor. Hay que **correr el schema.sql actualizado en Supabase**.
 - Si al registrarse no llega mail y la sesión queda abierta, en Supabase → Authentication → Providers → Email está apagado **Confirm email**. La app no puede mandar el correo: lo manda Auth. El SMTP gratis de Supabase es limitado; en producción conviene SMTP propio (Resend, etc.).
 - Admin: `app/admin/layout.tsx` + `lib/utils/admin.ts` (rol `admin` en `profiles`). Sin sesión → `/login`. Sin rol admin → `/`.
 
@@ -72,7 +73,7 @@ Estas pantallas **ya existen** (no empezarlas de cero):
 
 | Ruta | Qué hace hoy |
 | --- | --- |
-| `app/page.tsx` | Hero, destacados (`featured` desde Supabase, fallback a los últimos 8) y bloque de calidad / personalización. |
+| `app/page.tsx` | Hero, destacados y bloque FDM / archivo propio. |
 | `app/productos/page.tsx` | Catálogo con búsqueda, filtro por categoría y orden (nuevos / precio). |
 | `app/productos/[id]/page.tsx` | Ficha de producto. |
 | `app/carrito/page.tsx` | Resumen, cantidades, notas, preview del mensaje y checkout WhatsApp. |

@@ -22,7 +22,8 @@ export default function ProductForm({ product, onDone }: Props) {
     setError(null)
     setSuccess(false)
 
-    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const formData = new FormData(form)
     let result: { error?: string }
     try {
       result = await upsertProduct(formData)
@@ -39,7 +40,7 @@ export default function ProductForm({ product, onDone }: Props) {
     }
 
     setSuccess(true)
-    if (!product) event.currentTarget.reset()
+    if (!product) form.reset()
     router.refresh()
     onDone?.()
   }

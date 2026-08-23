@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CustomQuoteButton from '@/components/CustomQuoteButton'
 
 export default function Footer() {
   return (
@@ -7,19 +8,17 @@ export default function Footer() {
         <div>
           <p className="font-semibold text-[#f7f1e8]">3DShiba Store</p>
           <p className="mt-1 text-sm text-[#f7f1e8]/70">
-            Impresiones 3D a medida: figuras, accesorios y mates.
+            Impresión FDM a pedido. No modelamos: imprimimos el catálogo o tu archivo.
           </p>
         </div>
-        <div className="flex gap-4 text-sm text-[#f7f1e8]/80">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-[#f7f1e8]/80">
           <Link href="/productos" className="hover:text-shiba">
             Catálogo
           </Link>
           <Link href="/carrito" className="hover:text-shiba">
             Carrito
           </Link>
-          <Link href="/login" className="hover:text-shiba">
-            Cuenta
-          </Link>
+          <CustomQuoteButton tone="onDark" size="sm" />
         </div>
       </div>
     </footer>

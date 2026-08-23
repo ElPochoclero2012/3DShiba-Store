@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ProductCard from '@/components/ProductCard'
+import CustomQuoteButton from '@/components/CustomQuoteButton'
 import { mapProducts } from '@/lib/utils/mapProduct'
 
 export default async function HomePage() {
@@ -30,11 +31,11 @@ export default async function HomePage() {
               Impresión 3D en Mar del Plata
             </p>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">
-              Figuras, accesorios y mates que salen de la impresora a tu mesa.
+              Figuras, accesorios, mates, vasos y juegos. Impresos a pedido.
             </h1>
             <p className="mt-4 max-w-xl text-base text-[#f7f1e8]/75">
-              3DShiba Store es un emprendimiento de piezas personalizables. Armá tu pedido
-              en la web y lo coordinamos por WhatsApp.
+              Imprimimos en FDM lo que está en el catálogo, o el archivo que nos mandes.
+              No modelamos: si tenés el STL o 3MF, lo cotizamos por WhatsApp.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -43,20 +44,15 @@ export default async function HomePage() {
               >
                 Ver catálogo
               </Link>
-              <a
-                href="#destacados"
-                className="rounded-full border border-[#f7f1e8]/20 px-5 py-3 text-sm font-semibold text-[#f7f1e8] hover:bg-white/5"
-              >
-                Productos destacados
-              </a>
+              <CustomQuoteButton tone="onDark" />
             </div>
           </div>
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
             <p className="text-sm text-[#f7f1e8]/70">Cómo funciona</p>
             <ol className="mt-4 space-y-3 text-sm">
-              <li>1. Elegís figuras, accesorios o mates.</li>
-              <li>2. Los agregás al carrito.</li>
-              <li>3. Confirmás por WhatsApp y coordinamos pago y entrega.</li>
+              <li>1. Elegís del catálogo o nos mandás tu archivo.</li>
+              <li>2. Armás el pedido en la web, o pedís cotización por WhatsApp.</li>
+              <li>3. Coordinamos pago y entrega por chat.</li>
             </ol>
           </div>
         </div>
@@ -94,24 +90,23 @@ export default async function HomePage() {
       <section className="border-t border-line bg-card">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 md:grid-cols-3">
           <article>
-            <h3 className="text-lg font-semibold text-ink">Diseño a medida</h3>
+            <h3 className="text-lg font-semibold text-ink">Catálogo listo</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Pedí un modelo propio o una variación de algo que ya está en el catálogo.
-              Lo vemos por WhatsApp.
+              Figuras, accesorios, mates, vasos y juegos. Los agregás al carrito y
+              confirmás por WhatsApp.
             </p>
           </article>
           <article>
-            <h3 className="text-lg font-semibold text-ink">Materiales y acabado</h3>
+            <h3 className="text-lg font-semibold text-ink">Solo impresión FDM</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Impresión FDM/resina según la pieza. Colores y post-procesado se coordinan
-              antes de imprimir.
+              No imprimimos en resina. Color y acabado se coordinan antes de imprimir.
             </p>
           </article>
           <article>
-            <h3 className="text-lg font-semibold text-ink">Mates personalizables</h3>
+            <h3 className="text-lg font-semibold text-ink">Traé tu archivo</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Texto, color o un diseño que te guste. Dejá el detalle en las notas del carrito
-              al confirmar el pedido.
+              Si ya tenés el modelo, lo imprimimos a pedido. No hacemos modelado 3D.
+              La cotización va por WhatsApp.
             </p>
           </article>
         </div>

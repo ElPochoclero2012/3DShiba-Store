@@ -51,3 +51,12 @@ export function buildWhatsAppUrl(phone: string, text: string): string {
 export function getWhatsAppNumber(): string {
   return (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 }
+
+export function formatCustomPrintQuote(): string {
+  return [
+    'Hola! Quiero cotizar una impresión a pedido.',
+    '',
+    'Tengo el archivo del modelo (STL, 3MF u otro) y no está en el catálogo.',
+    '¿Me indican cómo enviarlo y el presupuesto?',
+  ].join('\n')
+}

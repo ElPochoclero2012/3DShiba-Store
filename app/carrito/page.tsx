@@ -118,7 +118,7 @@ export default function CartPage() {
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={3}
-                placeholder="Color, texto del mate, zona de entrega..."
+                placeholder="Color, zona de entrega, alguna nota..."
                 className="mt-1 w-full rounded-xl border border-line bg-background p-3 text-sm"
               />
             </label>

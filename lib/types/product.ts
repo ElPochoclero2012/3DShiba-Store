@@ -1,4 +1,10 @@
-export const PRODUCT_CATEGORIES = ['figuras', 'accesorios', 'mates'] as const
+export const PRODUCT_CATEGORIES = [
+  'figuras',
+  'accesorios',
+  'mates',
+  'vasos',
+  'juegos',
+] as const
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
 
@@ -6,6 +12,8 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   figuras: 'Figuras',
   accesorios: 'Accesorios',
   mates: 'Mates',
+  vasos: 'Vasos',
+  juegos: 'Juegos',
 }
 
 export type Product = {

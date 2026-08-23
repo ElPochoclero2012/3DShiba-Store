@@ -19,7 +19,8 @@ export const metadata: Metadata = {
     default: '3DShiba Store',
     template: '%s · 3DShiba Store',
   },
-  description: 'Tienda de impresiones 3D: figuras, accesorios y mates personalizables.',
+  description:
+    'Impresión 3D FDM a pedido: figuras, accesorios, mates, vasos y juegos. Mar del Plata.',
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
