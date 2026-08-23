@@ -10,3 +10,12 @@ export function formatPrice(value: unknown): string {
     maximumFractionDigits: 0,
   }).format(toNumber(value))
 }
+
+export function formatDateTime(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}

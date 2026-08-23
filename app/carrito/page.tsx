@@ -21,12 +21,14 @@ export default function CartPage() {
   )
   const [notes, setNotes] = useState('')
   const [email, setEmail] = useState<string | null>(null)
+  const [authReady, setAuthReady] = useState(false)
   const origin = ready ? window.location.origin : ''
 
   useEffect(() => {
     const supabase = createClient()
     void supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null)
+      setAuthReady(true)
     })
   }, [])
 
@@ -122,6 +124,16 @@ export default function CartPage() {
                 className="mt-1 w-full rounded-xl border border-line bg-background p-3 text-sm"
               />
             </label>
+
+            {authReady && !email && (
+              <p className="text-sm text-ink">
+                Para comprar tenés que{' '}
+                <Link href="/login?next=/carrito" className="font-medium text-shiba-dark hover:underline">
+                  iniciar sesión
+                </Link>
+                .
+              </p>
+            )}
 
             <WhatsAppCheckoutButton items={items} email={email} notes={notes} />
 

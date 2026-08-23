@@ -121,13 +121,23 @@ export default function Navbar() {
           </Link>
 
           {user ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="hidden rounded-full border border-white/70 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/15 md:inline-flex"
-            >
-              Salir
-            </button>
+            <>
+              <Link
+                href="/cuenta"
+                className={`hidden text-sm font-medium md:inline ${
+                  pathname === '/cuenta' ? 'text-white' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                Mi cuenta
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="hidden rounded-full border border-white/70 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/15 md:inline-flex"
+              >
+                Salir
+              </button>
+            </>
           ) : (
             <Link
               href="/login"
@@ -171,9 +181,18 @@ export default function Navbar() {
               </Link>
             )}
             {user ? (
-              <button type="button" onClick={handleLogout} className="text-left text-sm font-medium text-white">
-                Salir
-              </button>
+              <>
+                <Link
+                  href="/cuenta"
+                  onClick={() => setOpen(false)}
+                  className="text-sm font-medium text-white"
+                >
+                  Mi cuenta
+                </Link>
+                <button type="button" onClick={handleLogout} className="text-left text-sm font-medium text-white">
+                  Salir
+                </button>
+              </>
             ) : (
               <Link href="/login" className="text-sm font-medium text-white">
                 Ingresar

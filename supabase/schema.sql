@@ -216,3 +216,38 @@ create policy "Admins delete product images"
       where profiles.id = auth.uid() and profiles.role = 'admin'
     )
   );
+
+-- =============================================================================
+-- orders (historial de pedidos por usuario)
+-- =============================================================================
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.orders add column if not exists user_id uuid references auth.users (id) on delete cascade;
+alter table public.orders add column if not exists items jsonb default '[]'::jsonb;
+alter table public.orders add column if not exists total numeric(10, 2) default 0;
+alter table public.orders add column if not exists notes text;
+alter table public.orders add column if not exists created_at timestamptz default now();
+
+create index if not exists orders_user_id_idx on public.orders (user_id);
+create index if not exists orders_created_at_idx on public.orders (created_at desc);
+
+alter table public.orders enable row level security;
+
+drop policy if exists "Users can read own orders" on public.orders;
+create policy "Users can read own orders"
+  on public.orders for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists "Users can insert own orders" on public.orders;
+create policy "Users can insert own orders"
+  on public.orders for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists "Users can update own orders" on public.orders;
+drop policy if exists "Users can delete own orders" on public.orders;

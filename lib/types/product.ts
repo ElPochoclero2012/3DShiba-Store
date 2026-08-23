@@ -42,6 +42,17 @@ export type CartItem = {
   image_url: string | null
 }
 
+export type OrderItem = CartItem
+
+export type Order = {
+  id: string
+  user_id: string
+  items: OrderItem[]
+  total: number
+  notes: string | null
+  created_at: string
+}
+
 export function isProductCategory(value: string): value is ProductCategory {
   return (PRODUCT_CATEGORIES as readonly string[]).includes(value)
 }
