@@ -27,7 +27,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  const isServerAction =
+    request.headers.has('next-action') || request.headers.has('Next-Action')
+
+  // Un redirect acá convierte el POST del Server Action en HTML y el cliente ve 500.
+  if (request.nextUrl.pathname.startsWith('/admin') && !isServerAction) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', request.nextUrl.pathname)

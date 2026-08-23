@@ -23,7 +23,14 @@ export default function ProductForm({ product, onDone }: Props) {
     setSuccess(false)
 
     const formData = new FormData(event.currentTarget)
-    const result = await upsertProduct(formData)
+    let result: { error?: string }
+    try {
+      result = await upsertProduct(formData)
+    } catch (error) {
+      setLoading(false)
+      setError(error instanceof Error ? error.message : 'No se pudo guardar el producto')
+      return
+    }
 
     setLoading(false)
     if (result.error) {
@@ -115,7 +122,7 @@ export default function ProductForm({ product, onDone }: Props) {
           accept="image/jpeg,image/png,image/webp"
           className="w-full text-sm"
         />
-        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Máximo 5 MB.</p>
+        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Máximo 4 MB.</p>
       </div>
 
       {error && <p className="text-sm text-red-700">{error}</p>}

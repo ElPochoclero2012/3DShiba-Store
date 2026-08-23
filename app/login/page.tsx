@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
@@ -17,8 +15,15 @@ function LoginForm() {
   const next = searchParams.get('next') || '/'
   const authError = searchParams.get('error')
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    const email = String(formData.get('email') ?? '').trim()
+    const password = String(formData.get('password') ?? '')
+    const passwordInput = form.elements.namedItem('password')
+    if (passwordInput instanceof HTMLInputElement) passwordInput.value = ''
+
     setLoading(true)
     setMessage(null)
 
@@ -129,10 +134,10 @@ function LoginForm() {
           <div>
             <label className="mb-1 block text-sm font-medium text-ink">Email</label>
             <input
+              name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               className="w-full rounded-xl border border-line bg-background p-2.5"
               placeholder="tu@email.com"
             />
@@ -140,10 +145,10 @@ function LoginForm() {
           <div>
             <label className="mb-1 block text-sm font-medium text-ink">Contraseña</label>
             <input
+              name="password"
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
               className="w-full rounded-xl border border-line bg-background p-2.5"
               placeholder="••••••••"
             />
