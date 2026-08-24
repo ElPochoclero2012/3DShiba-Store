@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { SITE_URL } from '@/lib/utils/site'
 import './globals.css'
 
 const geistSans = Geist({
@@ -18,7 +19,7 @@ const siteDescription =
   'Impresión 3D FDM a pedido: figuras, accesorios, mates, vasos y juegos. Mar de Cobo.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://3dshiba-store.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: '3DShiba Store',
     template: '%s · 3DShiba Store',

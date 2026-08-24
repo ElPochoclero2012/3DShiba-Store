@@ -1,9 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateTime, formatPrice } from '@/lib/utils/format'
 import { mapOrders } from '@/lib/utils/mapOrder'
 import { ORDER_STATUS_LABELS } from '@/lib/utils/orderStatus'
+
+export const metadata: Metadata = {
+  title: 'Mi cuenta',
+  robots: { index: false, follow: false },
+}
 
 export default async function AccountPage() {
   const supabase = await createClient()

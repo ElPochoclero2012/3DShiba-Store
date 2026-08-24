@@ -1,9 +1,17 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import ProductCard from '@/components/ProductCard'
 import CatalogFilters from '@/components/CatalogFilters'
 import CustomQuoteButton from '@/components/CustomQuoteButton'
 import { CATEGORY_LABELS, PRODUCT_CATEGORIES, isProductCategory } from '@/lib/types/product'
 import { mapProducts } from '@/lib/utils/mapProduct'
+
+export const metadata: Metadata = {
+  title: 'Catálogo',
+  description:
+    'Catálogo de 3DShiba Store: figuras, accesorios, mates, vasos y juegos impresos en PLA. Mar de Cobo.',
+  alternates: { canonical: '/productos' },
+}
 
 type Search = { q?: string | string[]; category?: string | string[]; sort?: string | string[] }
 

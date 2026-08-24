@@ -31,11 +31,11 @@ export default async function HomePage() {
               Impresión 3D en Mar de Cobo
             </p>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">
-              Figuras, accesorios, mates, vasos y juegos. Impresos a pedido.
+              3DShiba Store
             </h1>
             <p className="mt-4 max-w-xl text-base text-white/85">
-              Imprimimos en FDM lo que está en el catálogo, o el archivo que nos mandes.
-              Si tenés el STL o 3MF, lo cotizamos por WhatsApp.
+              Figuras, accesorios, mates, vasos y juegos. Impresos a pedido en PLA.
+              Imprimimos el catálogo o el archivo que nos mandes (STL o 3MF).
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link

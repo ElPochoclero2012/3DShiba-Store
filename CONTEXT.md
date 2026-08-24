@@ -46,9 +46,9 @@ Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `p
 
 Objetivo: que Google muestre la tienda primero al buscar **3dshiba**. Es búsqueda de marca (nombre casi único); no hace falta rellenar keywords. Un `meta` no rankea solo: Google tiene que descubrir, leer y asociar el nombre con este sitio.
 
-**Hoy:** título/descripción globales y Open Graph en `app/layout.tsx` (`3DShiba Store`, FDM, Mar de Cobo). `lang="es"`. El H1 de la home no dice 3DShiba. No hay `sitemap.xml` ni `robots.txt`. Las fichas no tienen `generateMetadata` (todas heredan el título del layout). Dominio actual: `3dshiba-store.vercel.app` (Instagram usa `3dshiba.store`).
+**En código:** `app/sitemap.ts` (home, catálogo, nosotros, fichas), `app/robots.ts` (bloquea `/admin`, `/carrito`, `/cuenta`, `/login`, `/auth/`). H1 de la home: “3DShiba Store”. Catálogo y fichas tienen título propio (`generateMetadata`). URL canónica en `lib/utils/site.ts` (`SITE_URL`). Admin y cuenta van con `noindex`. Verificación Search Console: `public/google1e6d510ba2454479.html` (no borrar).
 
-**Qué mueve el ranking de marca (orden):** Search Console (indexar `/`, `/productos`, `/nosotros`) → mismo nombre + link a la web en Instagram/WhatsApp → H1 con “3DShiba Store” → sitemap → dominio propio cuando se pueda. No plugins de SEO ni copy genérico tipo “impresión 3D barata”.
+**Todavía del lado del dueño:** Google Search Console (indexar `/`, `/productos`, `/nosotros` y pegar el sitemap). Link a la web desde Instagram. Dominio propio (`3dshiba.store`) cuando se pueda.
 
 Búsquedas genéricas (“mates impresos 3D”, etc.) son otro juego (tiempo y competencia); no es el foco ahora.
 
@@ -90,7 +90,7 @@ Para que el admin vea **todos** los pedidos: SQL Editor → bloque `admin_list_o
 
 | Ruta | Qué hace hoy |
 | --- | --- |
-| `app/page.tsx` | Hero, destacados, bloque FDM / archivo propio. |
+| `app/page.tsx` | Hero (H1 3DShiba Store), destacados, bloque FDM / archivo propio. |
 | `app/productos/page.tsx` | Catálogo: búsqueda, categoría, orden. |
 | `app/productos/[id]/page.tsx` | Ficha. Cantidad en `AddToCartButton`. |
 | `app/carrito/page.tsx` | Items, color, entrega, WhatsApp (material fijo: PLA). |
@@ -113,8 +113,8 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Pushear a `main` el fix de checkout (PLA fijo, sin plazos, sin `LEAD_TIME_COPY`) para que Vercel deje de fallar. El dueño commitea/pushea.
-2. SEO de marca (cuando se retome): Search Console → sitemap/`robots.txt` → H1 con 3DShiba → `generateMetadata` en fichas. Link a la web desde Instagram.
+1. Pushear este paquete SEO a `main`. El dueño commitea/pushea.
+2. Google Search Console: dar de alta `https://3dshiba-store.vercel.app`, pedir indexación de `/`, `/productos`, `/nosotros` y enviar `https://3dshiba-store.vercel.app/sitemap.xml`. Link a la web desde Instagram.
 3. Correr en Supabase el SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` / `image_urls` (final de `schema.sql`) y probar pedidos de otra cuenta en `/admin/pedidos`.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
