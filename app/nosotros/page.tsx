@@ -23,8 +23,8 @@ export default function AboutPage() {
           <h2 className="text-lg font-semibold">Cómo pedís</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Elegís del catálogo, armás el carrito y confirmás por WhatsApp. Imprimimos en
-            PLA; el color lo indicás al pedir. Si tu pieza no está en la tienda y tenés el
-            STL o 3MF, pedí una cotización y lo vemos por chat.
+            PLA. Color u otro cambio, lo escribís en las notas: va al chat. Si tu pieza no
+            está en la tienda y tenés el STL o 3MF, pedí una cotización y lo vemos por chat.
           </p>
         </section>
 

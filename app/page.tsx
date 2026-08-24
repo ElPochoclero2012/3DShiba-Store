@@ -99,7 +99,8 @@ export default async function HomePage() {
           <article>
             <h3 className="text-lg font-semibold text-ink">Solo impresión FDM</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              No imprimimos en resina. Todo es PLA; el color lo elegís en el carrito.
+              No imprimimos en resina. Todo es PLA; color u otro cambio lo aclarás en las
+              notas del pedido.
             </p>
           </article>
           <article>

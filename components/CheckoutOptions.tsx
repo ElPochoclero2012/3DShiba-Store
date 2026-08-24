@@ -1,7 +1,4 @@
-import { PRINT_COLORS } from '@/lib/utils/checkoutDetails'
-
 export type CheckoutDraft = {
-  color: string
   delivery: '' | 'retiro' | 'envio'
   zone: string
   notes: string
@@ -12,37 +9,12 @@ type Props = {
   onChange: (value: CheckoutDraft) => void
 }
 
-function chipClass(active: boolean) {
-  return `rounded-full px-3 py-1.5 text-sm font-medium ${
-    active
-      ? 'bg-shiba text-white'
-      : 'border border-line bg-background text-ink hover:border-shiba/50'
-  }`
-}
-
 export default function CheckoutOptions({ value, onChange }: Props) {
   const set = (patch: Partial<CheckoutDraft>) => onChange({ ...value, ...patch })
 
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-sm font-medium text-ink">Color</p>
-        <p className="mt-0.5 text-xs text-muted">
-          Imprimimos en PLA. Si hay más de un color, aclaralo en las notas.
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {PRINT_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => set({ color })}
-              className={chipClass(value.color === color)}
-            >
-              {color}
-            </button>
-          ))}
-        </div>
-      </div>
+      <p className="text-sm text-muted">Imprimimos en PLA.</p>
 
       <div>
         <p className="text-sm font-medium text-ink">Entrega</p>
@@ -88,11 +60,14 @@ export default function CheckoutOptions({ value, onChange }: Props) {
 
       <label className="block text-sm font-medium text-ink">
         Notas para el pedido
+        <span className="mt-0.5 block text-xs font-normal text-muted">
+          Color u otro cambio, escribilo acá: va al WhatsApp.
+        </span>
         <textarea
           value={value.notes}
           onChange={(event) => set({ notes: event.target.value })}
           rows={3}
-          placeholder="Soportes, tamaño, alguna aclaración..."
+          placeholder="Color, tamaño, soportes..."
           className="mt-1 w-full rounded-xl border border-line bg-background p-3 text-sm"
         />
       </label>

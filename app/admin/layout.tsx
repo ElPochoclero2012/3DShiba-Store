@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { countUnseenAdminOrders } from '@/app/actions/orders'
 import AdminNav from '@/components/admin/AdminNav'
 import { requireAdmin } from '@/lib/utils/admin'
 
@@ -22,9 +23,11 @@ export default async function AdminLayout({
     redirect('/')
   }
 
+  const unseenPedidos = await countUnseenAdminOrders()
+
   return (
     <div className="min-h-full bg-background">
-      <AdminNav />
+      <AdminNav unseenPedidos={unseenPedidos} />
       {children}
     </div>
   )

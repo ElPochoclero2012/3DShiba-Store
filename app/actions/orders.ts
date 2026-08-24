@@ -30,8 +30,8 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
       return { error: 'El carrito está vacío.' }
     }
 
-    if (!input.details?.color || !input.details.delivery) {
-      return { error: 'Elegí color y forma de entrega.' }
+    if (!input.details?.delivery) {
+      return { error: 'Elegí cómo lo recibís.' }
     }
 
     const ids = [...new Set(input.items.map((item) => item.id).filter(Boolean))]
@@ -153,6 +153,45 @@ export async function setOrderStatus(orderId: string, status: OrderStatus) {
   }
 
   revalidatePath('/admin/pedidos')
+  revalidatePath('/admin/dashboard')
   revalidatePath('/cuenta')
+  await supabase.from('orders').update({ seen_at: new Date().toISOString() }).eq('id', orderId)
   return { success: true }
+}
+
+export async function markOrderSeen(orderId: string) {
+  const { supabase, isAdmin } = await requireAdmin()
+  if (!isAdmin) return { error: 'No tenés permiso.' }
+  if (!orderId) return { error: 'Pedido inválido.' }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ seen_at: new Date().toISOString() })
+    .eq('id', orderId)
+
+  if (error) {
+    return {
+      error: error.message.includes('seen_at')
+        ? 'Falta la columna seen_at en orders (está en supabase/schema.sql).'
+        : error.message,
+    }
+  }
+
+  revalidatePath('/admin/pedidos')
+  revalidatePath('/admin/dashboard')
+  return { success: true }
+}
+
+export async function countUnseenAdminOrders() {
+  const { supabase, isAdmin } = await requireAdmin()
+  if (!isAdmin) return 0
+
+  const { count, error } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .is('seen_at', null)
+    .eq('fulfillment_status', 'pending')
+
+  if (error) return 0
+  return count ?? 0
 }

@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { setOrderStatus } from '@/app/actions/orders'
+import { markOrderSeen, setOrderStatus } from '@/app/actions/orders'
 import type { Order } from '@/lib/types/product'
 import { formatDateTime, formatPrice } from '@/lib/utils/format'
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
+  isUnseenOrder,
   type OrderStatus,
 } from '@/lib/utils/orderStatus'
 
@@ -22,12 +23,30 @@ export default function AdminOrderList({ orders }: { orders: Order[] }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
+  const [filter, setFilter] = useState<OrderStatus | 'all' | 'unseen'>('all')
 
-  const visible = useMemo(
-    () => (filter === 'all' ? orders : orders.filter((order) => order.fulfillment_status === filter)),
-    [orders, filter]
+  const unseenCount = useMemo(
+    () => orders.filter(isUnseenOrder).length,
+    [orders]
   )
+
+  const visible = useMemo(() => {
+    if (filter === 'unseen') return orders.filter(isUnseenOrder)
+    if (filter === 'all') return orders
+    return orders.filter((order) => order.fulfillment_status === filter)
+  }, [orders, filter])
+
+  const handleSeen = async (orderId: string) => {
+    setSavingId(orderId)
+    setError(null)
+    const result = await markOrderSeen(orderId)
+    setSavingId(null)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    router.refresh()
+  }
 
   const handleStatus = async (orderId: string, status: OrderStatus) => {
     setSavingId(orderId)
@@ -61,6 +80,15 @@ export default function AdminOrderList({ orders }: { orders: Order[] }) {
         >
           Todos
         </button>
+        <button
+          type="button"
+          onClick={() => setFilter('unseen')}
+          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+            filter === 'unseen' ? 'bg-shiba text-white' : 'border border-line bg-card text-ink'
+          }`}
+        >
+          Nuevos{unseenCount > 0 ? ` (${unseenCount})` : ''}
+        </button>
         {ORDER_STATUSES.map((status) => (
           <button
             key={status}
@@ -83,16 +111,26 @@ export default function AdminOrderList({ orders }: { orders: Order[] }) {
 
       {visible.length === 0 ? (
         <p className="rounded-2xl border border-line bg-card p-6 text-sm text-muted">
-          No hay pedidos con ese estado.
+          No hay pedidos {filter === 'unseen' ? 'nuevos sin ver' : 'con ese estado'}.
         </p>
       ) : (
         <ul className="space-y-4">
           {visible.map((order) => (
-            <li key={order.id} className="rounded-2xl border border-line bg-card p-5 shadow-sm">
+            <li
+              key={order.id}
+              className={`rounded-2xl border bg-card p-5 shadow-sm ${
+                isUnseenOrder(order) ? 'border-shiba/50' : 'border-line'
+              }`}
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-ink">#{order.id.slice(0, 8)}</p>
+                    {isUnseenOrder(order) && (
+                      <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        Nuevo
+                      </span>
+                    )}
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_TONE[order.fulfillment_status]}`}
                     >
@@ -122,6 +160,17 @@ export default function AdminOrderList({ orders }: { orders: Order[] }) {
 
               {order.notes && (
                 <p className="mt-3 whitespace-pre-line text-sm text-muted">{order.notes}</p>
+              )}
+
+              {isUnseenOrder(order) && (
+                <button
+                  type="button"
+                  disabled={savingId === order.id}
+                  onClick={() => void handleSeen(order.id)}
+                  className="mt-3 text-sm font-medium text-shiba-dark hover:underline disabled:opacity-50"
+                >
+                  Marcar como visto
+                </button>
               )}
 
               <label className="mt-4 block text-sm font-medium text-ink">

@@ -1,22 +1,6 @@
-export const PRINT_COLORS = [
-  'Negro',
-  'Blanco',
-  'Gris',
-  'Rojo',
-  'Azul',
-  'Celeste',
-  'Verde',
-  'Amarillo',
-  'Naranja',
-  'Rosa',
-  'Transparente',
-  'A consultar',
-] as const
-
 export const PRINT_MATERIAL = 'PLA'
 
 export type CheckoutDetails = {
-  color: string
   material: typeof PRINT_MATERIAL
   delivery: 'retiro' | 'envio'
   zone?: string
@@ -24,15 +8,13 @@ export type CheckoutDetails = {
 }
 
 export function toCheckoutDetails(value: {
-  color: string
   delivery: '' | 'retiro' | 'envio'
   zone: string
   notes?: string
 }): CheckoutDetails | null {
-  if (!value.color || !value.delivery) return null
+  if (!value.delivery) return null
   if (value.delivery === 'envio' && !value.zone.trim()) return null
   return {
-    color: value.color,
     material: PRINT_MATERIAL,
     delivery: value.delivery,
     zone: value.zone.trim() || undefined,
@@ -47,11 +29,7 @@ export function formatDeliveryLine(details: Pick<CheckoutDetails, 'delivery' | '
 }
 
 export function formatCheckoutNotes(details: CheckoutDetails): string {
-  const lines = [
-    `Color: ${details.color}`,
-    `Material: ${details.material}`,
-    `Entrega: ${formatDeliveryLine(details)}`,
-  ]
+  const lines = [`Material: ${details.material}`, `Entrega: ${formatDeliveryLine(details)}`]
   const extra = details.notes?.trim()
   if (extra) lines.push(extra)
   return lines.join('\n')

@@ -16,3 +16,10 @@ export function isOrderStatus(value: string): value is OrderStatus {
 export function parseOrderStatus(value: unknown): OrderStatus {
   return typeof value === 'string' && isOrderStatus(value) ? value : 'pending'
 }
+
+export function isUnseenOrder(order: {
+  seen_at: string | null
+  fulfillment_status: OrderStatus
+}) {
+  return !order.seen_at && order.fulfillment_status === 'pending'
+}

@@ -69,8 +69,9 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 ### En código, todavía sin testear / a verificar
 
 1. **Admin de pedidos** — SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` **ya corrido** (2026-08-24). Falta probar en `/admin/pedidos`: pedidos de la cuenta `user` visibles con la cuenta `admin`, y cambiar estado.
-2. **Color y entrega en el carrito** — chips de color (solo PLA) + retiro/envío. Van al WhatsApp y al pedido. Sin plazos en la web: se coordinan por chat.
+2. **Entrega en el carrito** — retiro/envío. Color u otro cambio: notas → WhatsApp. Sin plazos en la web.
 3. **Varias fotos por producto** — En admin se reordenan y eliminan (la primera es la principal). En la ficha: carrusel cada 6s con deslizamiento, flechas, clic para ampliar. Subida desde el navegador al bucket. JPEG se comprime a JPG; PNG/WebP conservan transparencia (WebP).
+4. **Pedidos nuevos** — pendientes sin `seen_at`. Badge en Admin / pestaña Pedidos. “Marcar como visto” o cambiar estado los saca del aviso.
 
 ### Base de datos y storage
 
@@ -91,7 +92,7 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 | `app/page.tsx` | Hero (H1 3DShiba Store), destacados, bloque FDM / archivo propio. |
 | `app/productos/page.tsx` | Catálogo: búsqueda, categoría, orden. |
 | `app/productos/[id]/page.tsx` | Ficha. Cantidad en `AddToCartButton`. |
-| `app/carrito/page.tsx` | Items, color, entrega, WhatsApp (material fijo: PLA). |
+| `app/carrito/page.tsx` | Items, entrega, notas, WhatsApp (PLA fijo; color en notas). |
 | `app/cuenta/page.tsx` | Email + historial del usuario. |
 | `app/nosotros/page.tsx` | Taller, Mar de Cobo, retiro/envío. |
 | `app/admin/pedidos/page.tsx` | Pedidos de todos + estado. |
@@ -106,13 +107,13 @@ Guía al tocar superficies existentes:
 
 1. **Landing** — Hero, destacados, FDM / archivo propio.
 2. **Catálogo** — Grilla, búsqueda, orden.
-3. **Carrito / WhatsApp** — Color, entrega, cantidades → `wa.me`. Material siempre PLA.
+3. **Carrito / WhatsApp** — Entrega, cantidades, notas (color/cambios) → `wa.me`. Material siempre PLA.
 4. **Admin** — Pedidos del día + CRUD de productos.
 
 ## Próximo paso
 
-1. Probar en la web: pedido con la cuenta `user` → entrar con `admin` → `/admin/pedidos` (tiene que verse) → cambiar estado. En Productos, fotos extra y galería en la ficha.
-2. Google: esperar indexación (sitemap ya enviado). Link de Instagram ya está.
+1. Probar: pedido con cuenta `user` (sin chips de color; notas si hace falta) → admin ve **Nuevo** y el número en Pedidos/Admin → marcar visto o cambiar estado.
+2. Google: esperar indexación. Google Business Profile lo arma el dueño. Dominio propio: no por ahora.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 

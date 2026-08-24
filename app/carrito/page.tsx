@@ -22,7 +22,6 @@ export default function CartPage() {
     () => false
   )
   const [checkout, setCheckout] = useState<CheckoutDraft>({
-    color: '',
     delivery: '',
     zone: '',
     notes: '',

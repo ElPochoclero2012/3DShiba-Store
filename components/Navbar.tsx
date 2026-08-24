@@ -8,6 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { bindCartSession, whenCartReady } from '@/lib/store/bindCartSession'
 import { useCartItemCount } from '@/lib/store/useCart'
+import { countUnseenAdminOrders } from '@/app/actions/orders'
 import BrandLogo from '@/components/BrandLogo'
 
 const NAV_LINKS = [
@@ -26,6 +27,7 @@ export default function Navbar() {
   )
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [unseenPedidos, setUnseenPedidos] = useState(0)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export default function Navbar() {
 
       if (!current) {
         setIsAdmin(false)
+        setUnseenPedidos(0)
         return
       }
 
@@ -52,7 +55,9 @@ export default function Navbar() {
         .eq('id', current.id)
         .maybeSingle()
 
-      setIsAdmin(profile?.role === 'admin')
+      const admin = profile?.role === 'admin'
+      setIsAdmin(admin)
+      setUnseenPedidos(admin ? await countUnseenAdminOrders() : 0)
     }
 
     void load()
@@ -66,6 +71,7 @@ export default function Navbar() {
       setUser(session?.user ?? null)
       if (!session?.user) {
         setIsAdmin(false)
+        setUnseenPedidos(0)
         return
       }
       void supabase
@@ -73,11 +79,23 @@ export default function Navbar() {
         .select('role')
         .eq('id', session.user.id)
         .maybeSingle()
-        .then(({ data }) => setIsAdmin(data?.role === 'admin'))
+        .then(async ({ data }) => {
+          const admin = data?.role === 'admin'
+          setIsAdmin(admin)
+          setUnseenPedidos(admin ? await countUnseenAdminOrders() : 0)
+        })
     })
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setUnseenPedidos(0)
+      return
+    }
+    void countUnseenAdminOrders().then(setUnseenPedidos)
+  }, [isAdmin, pathname])
 
   const handleLogout = async () => {
     if (user) {
@@ -115,6 +133,11 @@ export default function Navbar() {
               }`}
             >
               Admin
+              {unseenPedidos > 0 && (
+                <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                  {unseenPedidos}
+                </span>
+              )}
             </Link>
           )}
         </nav>
@@ -191,6 +214,7 @@ export default function Navbar() {
                 className="text-sm font-medium text-white"
               >
                 Admin
+                {unseenPedidos > 0 ? ` (${unseenPedidos})` : ''}
               </Link>
             )}
             {user ? (

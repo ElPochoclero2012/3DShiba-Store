@@ -4,16 +4,14 @@ import {
   formatDeliveryLine,
   toCheckoutDetails,
 } from '../lib/utils/checkoutDetails.ts'
-assert.equal(toCheckoutDetails({ color: '', delivery: 'retiro', zone: '' }), null)
-assert.equal(toCheckoutDetails({ color: 'Negro', delivery: '', zone: '' }), null)
-assert.equal(
-  toCheckoutDetails({ color: 'Negro', delivery: 'envio', zone: '' }),
-  null
-)
-assert.deepEqual(
-  toCheckoutDetails({ color: 'Negro', delivery: 'retiro', zone: '' }),
-  { color: 'Negro', material: 'PLA', delivery: 'retiro', zone: undefined, notes: undefined }
-)
+assert.equal(toCheckoutDetails({ delivery: '', zone: '' }), null)
+assert.equal(toCheckoutDetails({ delivery: 'envio', zone: '' }), null)
+assert.deepEqual(toCheckoutDetails({ delivery: 'retiro', zone: '' }), {
+  material: 'PLA',
+  delivery: 'retiro',
+  zone: undefined,
+  notes: undefined,
+})
 
 assert.equal(formatDeliveryLine({ delivery: 'retiro' }), 'Retiro en Mar de Cobo')
 assert.equal(
@@ -22,14 +20,13 @@ assert.equal(
 )
 
 const notes = formatCheckoutNotes({
-  color: 'Negro',
   material: 'PLA',
   delivery: 'retiro',
-  notes: 'Sin soportes a la vista',
+  notes: 'Color rojo, sin soportes a la vista',
 })
-assert.match(notes, /Color: Negro/)
 assert.match(notes, /Material: PLA/)
 assert.match(notes, /Retiro en Mar de Cobo/)
-assert.match(notes, /Sin soportes/)
+assert.match(notes, /Color rojo/)
+assert.doesNotMatch(notes, /^Color:/m)
 
 console.log('checkoutDetails ok')
