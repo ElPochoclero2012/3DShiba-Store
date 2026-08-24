@@ -7,7 +7,20 @@ import {
 
 const MAX_EDGE = 1600
 
-async function asJpeg(file: File): Promise<Blob> {
+function toBlob(canvas: HTMLCanvasElement, mime: string, quality?: number) {
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, quality))
+}
+
+function extensionFor(blob: Blob, original: File) {
+  if (blob.type === 'image/webp') return 'webp'
+  if (blob.type === 'image/png') return 'png'
+  if (blob.type === 'image/jpeg') return 'jpg'
+  if (original.type === 'image/png') return 'png'
+  if (original.type === 'image/webp') return 'webp'
+  return 'jpg'
+}
+
+async function compressPhoto(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file)
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
@@ -17,10 +30,18 @@ async function asJpeg(file: File): Promise<Blob> {
   if (!ctx) return file
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/jpeg', 0.82)
-  )
-  return blob && blob.size > 0 ? blob : file
+
+  // ponytail: JPEG no tiene alfa; PNG/WebP se guardan en WebP (o PNG si el navegador no puede).
+  if (file.type !== 'image/jpeg') {
+    const webp = await toBlob(canvas, 'image/webp', 0.82)
+    if (webp && webp.size > 0) return webp
+    const png = await toBlob(canvas, 'image/png')
+    if (png && png.size > 0) return png
+    return file
+  }
+
+  const jpeg = await toBlob(canvas, 'image/jpeg', 0.82)
+  return jpeg && jpeg.size > 0 ? jpeg : file
 }
 
 export async function uploadProductPhoto(
@@ -34,7 +55,7 @@ export async function uploadProductPhoto(
 
   let blob: Blob
   try {
-    blob = await asJpeg(file)
+    blob = await compressPhoto(file)
   } catch {
     blob = file
   }
@@ -43,10 +64,11 @@ export async function uploadProductPhoto(
     return { error: 'Cada imagen no puede superar 4 MB' }
   }
 
-  const path = `${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+  const ext = extensionFor(blob, file)
+  const path = `${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   const { error } = await supabase.storage.from(PRODUCT_IMAGE_BUCKET).upload(path, blob, {
     upsert: true,
-    contentType: blob.type || 'image/jpeg',
+    contentType: blob.type || file.type,
   })
   if (error) return { error: error.message }
 
