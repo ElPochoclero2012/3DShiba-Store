@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { upsertProduct } from '@/app/actions/products'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORY_LABELS, PRODUCT_CATEGORIES, type Product } from '@/lib/types/product'
+import { MAX_PRODUCT_PHOTOS, moveItem } from '@/lib/utils/productImages'
 import { uploadProductPhoto } from '@/lib/utils/uploadProductPhoto'
 
 type Props = {
@@ -15,9 +17,11 @@ type Props = {
 
 export default function ProductForm({ product, onDone }: Props) {
   const router = useRouter()
+  const [photos, setPhotos] = useState<string[]>(product?.image_urls ?? [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const remaining = MAX_PRODUCT_PHOTOS - photos.length
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -31,29 +35,21 @@ export default function ProductForm({ product, onDone }: Props) {
     if (!product?.id) formData.set('product_id', productId)
 
     const supabase = createClient()
-    const cover = formData.get('image')
-    if (cover instanceof File && cover.size > 0) {
-      const uploaded = await uploadProductPhoto(supabase, productId, cover)
-      if (uploaded.error) {
-        setLoading(false)
-        setError(uploaded.error)
-        return
-      }
-      if (uploaded.url) formData.set('new_cover_url', uploaded.url)
-    }
-    formData.delete('image')
-
+    const nextPhotos = [...photos]
     for (const extra of formData.getAll('gallery')) {
       if (!(extra instanceof File) || extra.size === 0) continue
+      if (nextPhotos.length >= MAX_PRODUCT_PHOTOS) break
       const uploaded = await uploadProductPhoto(supabase, productId, extra)
       if (uploaded.error) {
         setLoading(false)
         setError(uploaded.error)
         return
       }
-      if (uploaded.url) formData.append('new_gallery_url', uploaded.url)
+      if (uploaded.url && !nextPhotos.includes(uploaded.url)) nextPhotos.push(uploaded.url)
     }
     formData.delete('gallery')
+    formData.delete('gallery_url')
+    for (const url of nextPhotos) formData.append('gallery_url', url)
 
     let result: { error?: string }
     try {
@@ -71,7 +67,11 @@ export default function ProductForm({ product, onDone }: Props) {
     }
 
     setSuccess(true)
-    if (!product) form.reset()
+    setPhotos(nextPhotos)
+    if (!product) {
+      form.reset()
+      setPhotos([])
+    }
     router.refresh()
     onDone?.()
   }
@@ -79,6 +79,9 @@ export default function ProductForm({ product, onDone }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-line bg-card p-5">
       {product?.id && <input type="hidden" name="id" value={product.id} />}
+      {(product?.image_urls ?? []).map((url) => (
+        <input key={url} type="hidden" name="previous_url" value={url} />
+      ))}
 
       <div>
         <label className="mb-1 block text-sm font-medium">Nombre</label>
@@ -134,46 +137,73 @@ export default function ProductForm({ product, onDone }: Props) {
       </label>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Foto principal</label>
-        <input
-          name="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="w-full text-sm"
-        />
-        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Se comprimen al subir.</p>
-        {product?.image_url && (
-          <input type="hidden" name="existing_image_url" value={product.image_url} />
-        )}
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm font-medium">Fotos extra (opcional)</label>
-        {product && product.image_urls.filter((url) => url !== product.image_url).length > 0 && (
-          <ul className="mb-2 space-y-2">
-            {product.image_urls
-              .filter((url) => url !== product.image_url)
-              .map((url) => (
-                <li key={url}>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="keep_gallery" value={url} defaultChecked />
-                    <span className="relative h-12 w-12 overflow-hidden rounded-lg bg-background">
-                      <Image src={url} alt="" fill className="object-cover" sizes="48px" />
-                    </span>
-                    <span className="text-muted">Mantener</span>
-                  </label>
-                </li>
-              ))}
+        <p className="mb-1 text-sm font-medium">Fotos</p>
+        <p className="mb-2 text-xs text-muted">
+          La primera es la principal. Podés reordenar o eliminar. Hasta {MAX_PRODUCT_PHOTOS}.
+        </p>
+        {photos.length === 0 ? (
+          <p className="mb-2 rounded-xl border border-dashed border-line bg-background p-3 text-sm text-muted">
+            Todavía no hay fotos.
+          </p>
+        ) : (
+          <ul className="mb-3 space-y-2">
+            {photos.map((url, index) => (
+              <li
+                key={url}
+                className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-background p-2"
+              >
+                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+                  <Image src={url} alt="" fill className="object-cover" sizes="64px" />
+                </span>
+                <p className="min-w-0 flex-1 text-sm text-ink">
+                  {index === 0 ? 'Principal' : `Foto ${index + 1}`}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setPhotos(moveItem(photos, index, -1))}
+                    disabled={index === 0}
+                    className="rounded-lg border border-line p-1.5 text-ink hover:bg-card disabled:opacity-30"
+                    aria-label="Subir"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotos(moveItem(photos, index, 1))}
+                    disabled={index === photos.length - 1}
+                    className="rounded-lg border border-line p-1.5 text-ink hover:bg-card disabled:opacity-30"
+                    aria-label="Bajar"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotos(photos.filter((_, item) => item !== index))}
+                    className="rounded-lg px-2 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
-        <input
-          name="gallery"
-          type="file"
-          multiple
-          accept="image/jpeg,image/png,image/webp"
-          className="w-full text-sm"
-        />
-        <p className="mt-1 text-xs text-muted">Hasta 4 extras. Se suben directo al storage.</p>
+        {remaining > 0 && (
+          <>
+            <input
+              name="gallery"
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              className="w-full text-sm"
+            />
+            <p className="mt-1 text-xs text-muted">
+              JPG, PNG o WebP. Se comprimen al subir. Quedan {remaining} lugar
+              {remaining === 1 ? '' : 'es'}.
+            </p>
+          </>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-700">{error}</p>}

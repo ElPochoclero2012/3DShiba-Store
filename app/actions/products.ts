@@ -7,6 +7,7 @@ import { toNumber } from '@/lib/utils/format'
 import {
   isProductStorageUrl,
   MAX_PRODUCT_PHOTOS,
+  PRODUCT_IMAGE_BUCKET,
   storagePathFromUrl,
 } from '@/lib/utils/productImages'
 
@@ -51,24 +52,26 @@ export async function upsertProduct(formData: FormData) {
     const price = toNumber(formData.get('price'))
     const category = String(formData.get('category') ?? '')
     const featured = formData.get('featured') === 'on'
-    const newCover = takeStorageUrl(formData.get('new_cover_url'))
-    const existingCover = takeStorageUrl(formData.get('existing_image_url'))
-    const kept = formData.getAll('keep_gallery').map(takeStorageUrl).filter(Boolean)
-    const newGallery = formData.getAll('new_gallery_url').map(takeStorageUrl).filter(Boolean)
 
     if (!name) return { error: 'El nombre es obligatorio' }
     if (price < 0) return { error: 'El precio no puede ser negativo' }
     if (!isProductCategory(category)) return { error: 'Categoría inválida' }
 
-    const photos: string[] = []
-    const cover = newCover || existingCover
-    if (cover) photos.push(cover)
-    for (const url of kept) {
-      if (!photos.includes(url)) photos.push(url)
-    }
-    for (const url of newGallery) {
-      if (photos.length >= MAX_PRODUCT_PHOTOS) break
-      if (!photos.includes(url)) photos.push(url)
+    const photos = [
+      ...formData.getAll('gallery_url').map(takeStorageUrl),
+      ...formData.getAll('new_gallery_url').map(takeStorageUrl),
+    ]
+      .filter(Boolean)
+      .filter((url, index, list) => list.indexOf(url) === index)
+      .slice(0, MAX_PRODUCT_PHOTOS)
+
+    const previous = formData.getAll('previous_url').map(takeStorageUrl).filter(Boolean)
+    const removed = previous.filter((url) => !photos.includes(url))
+    const removedPaths = [
+      ...new Set(removed.map(storagePathFromUrl).filter((path): path is string => Boolean(path))),
+    ]
+    if (removedPaths.length) {
+      await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove(removedPaths)
     }
 
     // ponytail: la DB real tiene title + slug NOT NULL (legado) además de name.
@@ -80,7 +83,8 @@ export async function upsertProduct(formData: FormData) {
       price,
       category,
       featured,
-      ...(photos.length ? { image_url: photos[0], image_urls: photos } : {}),
+      image_url: photos[0] ?? null,
+      image_urls: photos,
     }
 
     if (id) {
@@ -134,7 +138,7 @@ export async function deleteProduct(id: string, imageUrl?: string | null) {
 
     const paths = [...new Set(urls.map(storagePathFromUrl).filter((path): path is string => Boolean(path)))]
     if (paths.length) {
-      await supabase.storage.from('product-images').remove(paths)
+      await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove(paths)
     }
 
     const { error } = await supabase.from('products').delete().eq('id', id)

@@ -14,3 +14,11 @@ export function storagePathFromUrl(url: string | null | undefined) {
   if (index === -1) return null
   return decodeURIComponent(url.slice(index + marker.length))
 }
+
+export function moveItem<T>(list: T[], index: number, direction: -1 | 1): T[] {
+  const next = index + direction
+  if (index < 0 || next < 0 || next >= list.length) return list
+  const copy = [...list]
+  ;[copy[index], copy[next]] = [copy[next], copy[index]]
+  return copy
+}

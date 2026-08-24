@@ -42,7 +42,7 @@ export default function AdminProductList({ products }: { products: Product[] }) 
               Cerrar
             </button>
           </div>
-          <ProductForm product={editing} onDone={() => setEditing(null)} />
+          <ProductForm key={editing.id} product={editing} onDone={() => setEditing(null)} />
         </div>
       )}
 
