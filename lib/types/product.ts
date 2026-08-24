@@ -1,3 +1,5 @@
+import type { OrderStatus } from '@/lib/utils/orderStatus'
+
 export const PRODUCT_CATEGORIES = [
   'figuras',
   'accesorios',
@@ -23,6 +25,7 @@ export type Product = {
   price: number
   category: ProductCategory
   image_url: string | null
+  image_urls: string[]
   featured: boolean
   created_at: string
 }
@@ -55,6 +58,7 @@ export type Order = {
   customer_email: string | null
   shipping_address: string | null
   seen_at: string | null
+  fulfillment_status: OrderStatus
 }
 
 export function isProductCategory(value: string): value is ProductCategory {

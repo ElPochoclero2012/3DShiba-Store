@@ -25,6 +25,7 @@ alter table public.products add column if not exists description text;
 alter table public.products add column if not exists price numeric(10, 2);
 alter table public.products add column if not exists category text;
 alter table public.products add column if not exists image_url text;
+alter table public.products add column if not exists image_urls jsonb default '[]'::jsonb;
 alter table public.products add column if not exists featured boolean default false;
 alter table public.products add column if not exists stock integer default 0;
 alter table public.products add column if not exists created_at timestamptz default now();
@@ -234,7 +235,12 @@ alter table public.orders add column if not exists items jsonb default '[]'::jso
 alter table public.orders add column if not exists total numeric(10, 2) default 0;
 alter table public.orders add column if not exists notes text;
 alter table public.orders add column if not exists seen_at timestamptz;
+alter table public.orders add column if not exists fulfillment_status text default 'pending';
 alter table public.orders add column if not exists created_at timestamptz default now();
+
+update public.orders
+set fulfillment_status = 'pending'
+where fulfillment_status is null or fulfillment_status = '';
 
 create index if not exists orders_user_id_idx on public.orders (user_id);
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
@@ -256,30 +262,69 @@ create policy "Users can insert own orders"
 drop policy if exists "Users can update own orders" on public.orders;
 drop policy if exists "Users can delete own orders" on public.orders;
 
+-- ponytail: SECURITY DEFINER evita que RLS de profiles tape el chequeo de admin.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+create or replace function public.admin_list_orders()
+returns setof public.orders
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select * from public.orders
+  where public.is_admin()
+  order by created_at desc;
+$$;
+
+revoke all on function public.admin_list_orders() from public, anon;
+grant execute on function public.admin_list_orders() to authenticated;
+
+create or replace function public.admin_set_order_status(p_id uuid, p_status text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'No autorizado';
+  end if;
+  if p_status not in ('pending', 'processing', 'completed', 'shipped') then
+    raise exception 'Estado inválido';
+  end if;
+  update public.orders
+  set fulfillment_status = p_status
+  where id = p_id;
+end;
+$$;
+
+revoke all on function public.admin_set_order_status(uuid, text) from public, anon;
+grant execute on function public.admin_set_order_status(uuid, text) to authenticated;
+
 drop policy if exists "Admins can read all orders" on public.orders;
 create policy "Admins can read all orders"
   on public.orders for select
   to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 drop policy if exists "Admins can update orders" on public.orders;
 create policy "Admins can update orders"
   on public.orders for update
   to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  )
-  with check (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  using (public.is_admin())
+  with check (public.is_admin());

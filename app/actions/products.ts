@@ -7,6 +7,7 @@ import { toNumber } from '@/lib/utils/format'
 
 const MAX_SIZE = 4 * 1024 * 1024
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_PHOTOS = 5
 
 function asError(error: unknown) {
   return error instanceof Error ? error.message : 'No se pudo guardar el producto'
@@ -52,35 +53,52 @@ export async function upsertProduct(formData: FormData) {
     const category = String(formData.get('category') ?? '')
     const featured = formData.get('featured') === 'on'
     const file = formData.get('image')
+    const galleryFiles = formData.getAll('gallery')
+    const kept = formData.getAll('keep_gallery').map(String).filter(Boolean)
+    const existingCover = String(formData.get('existing_image_url') ?? '').trim()
 
     if (!name) return { error: 'El nombre es obligatorio' }
     if (price < 0) return { error: 'El precio no puede ser negativo' }
     if (!isProductCategory(category)) return { error: 'Categoría inválida' }
 
     const productId = id || crypto.randomUUID()
-    let imageUrl: string | undefined
+    const photos: string[] = []
 
-    if (file instanceof Blob && file.size > 0) {
-      if (!ALLOWED.includes(file.type)) {
+    async function uploadBlob(blob: Blob, filename: string) {
+      if (!ALLOWED.includes(blob.type)) {
         return { error: 'La imagen tiene que ser JPG, PNG o WebP' }
       }
-      if (file.size > MAX_SIZE) {
-        return { error: 'La imagen no puede superar 4 MB' }
+      if (blob.size > MAX_SIZE) {
+        return { error: 'Cada imagen no puede superar 4 MB' }
       }
-
-      const filename = file instanceof File ? file.name : 'foto.jpg'
       const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
-      const path = `${productId}/${Date.now()}.${ext}`
-      const bytes = new Uint8Array(await file.arrayBuffer())
+      const path = `${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const bytes = new Uint8Array(await blob.arrayBuffer())
       const { error: uploadError } = await supabase.storage
         .from('product-images')
-        .upload(path, bytes, { upsert: true, contentType: file.type })
+        .upload(path, bytes, { upsert: true, contentType: blob.type })
+      if (uploadError) return { error: uploadError.message }
+      return { url: supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl }
+    }
 
-      if (uploadError) {
-        return { error: uploadError.message }
-      }
+    if (file instanceof Blob && file.size > 0) {
+      const uploaded = await uploadBlob(file, file instanceof File ? file.name : 'foto.jpg')
+      if (uploaded.error) return { error: uploaded.error }
+      if (uploaded.url) photos.push(uploaded.url)
+    } else if (existingCover) {
+      photos.push(existingCover)
+    }
 
-      imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl
+    for (const url of kept) {
+      if (!photos.includes(url)) photos.push(url)
+    }
+
+    for (const extra of galleryFiles) {
+      if (!(extra instanceof Blob) || extra.size === 0) continue
+      if (photos.length >= MAX_PHOTOS) break
+      const uploaded = await uploadBlob(extra, extra instanceof File ? extra.name : 'foto.jpg')
+      if (uploaded.error) return { error: uploaded.error }
+      if (uploaded.url && !photos.includes(uploaded.url)) photos.push(uploaded.url)
     }
 
     // ponytail: la DB real tiene title + slug NOT NULL (legado) además de name.
@@ -92,15 +110,31 @@ export async function upsertProduct(formData: FormData) {
       price,
       category,
       featured,
-      ...(imageUrl ? { image_url: imageUrl } : {}),
+      ...(photos.length ? { image_url: photos[0], image_urls: photos } : {}),
     }
 
     if (id) {
       const { error } = await supabase.from('products').update(payload).eq('id', id)
-      if (error) return { error: error.message }
+      if (error) {
+        if (error.message.includes('image_urls')) {
+          const { image_urls: _ignored, ...withoutGallery } = payload
+          const retry = await supabase.from('products').update(withoutGallery).eq('id', id)
+          if (retry.error) return { error: retry.error.message }
+        } else {
+          return { error: error.message }
+        }
+      }
     } else {
       const { error } = await supabase.from('products').insert({ id: productId, ...payload })
-      if (error) return { error: error.message }
+      if (error) {
+        if (error.message.includes('image_urls')) {
+          const { image_urls: _ignored, ...withoutGallery } = payload
+          const retry = await supabase.from('products').insert({ id: productId, ...withoutGallery })
+          if (retry.error) return { error: retry.error.message }
+        } else {
+          return { error: error.message }
+        }
+      }
     }
 
     revalidateProductPaths(productId)
@@ -117,9 +151,20 @@ export async function deleteProduct(id: string, imageUrl?: string | null) {
       return { error: 'No autorizado' }
     }
 
-    const path = storagePathFromUrl(imageUrl)
-    if (path) {
-      await supabase.storage.from('product-images').remove([path])
+    const { data: row } = await supabase
+      .from('products')
+      .select('image_url, image_urls')
+      .eq('id', id)
+      .maybeSingle()
+
+    const urls = [
+      typeof row?.image_url === 'string' ? row.image_url : imageUrl,
+      ...(Array.isArray(row?.image_urls) ? row.image_urls : []),
+    ].filter((url): url is string => typeof url === 'string' && url.length > 0)
+
+    const paths = [...new Set(urls.map(storagePathFromUrl).filter((path): path is string => Boolean(path)))]
+    if (paths.length) {
+      await supabase.storage.from('product-images').remove(paths)
     }
 
     const { error } = await supabase.from('products').delete().eq('id', id)

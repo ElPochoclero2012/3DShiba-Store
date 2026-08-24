@@ -9,8 +9,10 @@ import {
   formatDeliveryLine,
   type CheckoutDetails,
 } from '@/lib/utils/checkoutDetails'
-import { legacyOrderValue, missingNotNullColumn } from '@/lib/utils/legacyOrderColumns'
+import { legacyOrderValue, missingNotNullColumn, missingSchemaColumn } from '@/lib/utils/legacyOrderColumns'
+import { mapOrders } from '@/lib/utils/mapOrder'
 import { mapProducts } from '@/lib/utils/mapProduct'
+import { isOrderStatus, type OrderStatus } from '@/lib/utils/orderStatus'
 import { toNumber } from '@/lib/utils/format'
 
 export async function createOrder(input: { items: CartItem[]; details: CheckoutDetails }) {
@@ -77,6 +79,7 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
       items,
       total,
       notes,
+      fulfillment_status: 'pending',
     }
 
     let lastError = ''
@@ -85,6 +88,11 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
       if (!insertError) return { success: true }
 
       lastError = insertError.message
+      const missing = missingSchemaColumn(lastError)
+      if (missing && missing in row) {
+        delete row[missing]
+        continue
+      }
       const column = missingNotNullColumn(lastError)
       if (!column) break
       if (column in row && row[column] != null) break
@@ -99,24 +107,52 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
   }
 }
 
-export async function markOrderSeen(orderId: string) {
+export async function listAdminOrders() {
+  const { supabase, isAdmin } = await requireAdmin()
+  if (!isAdmin) return { error: 'No tenés permiso.', orders: [], needsSql: false }
+
+  const rpc = await supabase.rpc('admin_list_orders')
+  if (!rpc.error) {
+    return { orders: mapOrders(rpc.data), needsSql: false }
+  }
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return {
+    orders: mapOrders(data),
+    error: error?.message,
+    needsSql: true,
+  }
+}
+
+export async function setOrderStatus(orderId: string, status: OrderStatus) {
   const { supabase, isAdmin } = await requireAdmin()
   if (!isAdmin) return { error: 'No tenés permiso.' }
-  if (!orderId) return { error: 'Pedido inválido.' }
+  if (!orderId || !isOrderStatus(status)) return { error: 'Pedido o estado inválido.' }
 
-  const { error } = await supabase
-    .from('orders')
-    .update({ seen_at: new Date().toISOString() })
-    .eq('id', orderId)
+  const rpc = await supabase.rpc('admin_set_order_status', {
+    p_id: orderId,
+    p_status: status,
+  })
 
-  if (error) {
-    return {
-      error: error.message.includes('seen_at')
-        ? 'Falta la columna seen_at. Corré el bloque de orders en supabase/schema.sql.'
-        : error.message,
+  if (rpc.error) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ fulfillment_status: status })
+      .eq('id', orderId)
+    if (error) {
+      return {
+        error: error.message.includes('fulfillment_status') || rpc.error.message.includes('admin_set_order_status')
+          ? 'Falta correr el SQL de pedidos (estados + admin_list_orders) en supabase/schema.sql.'
+          : error.message,
+      }
     }
   }
 
   revalidatePath('/admin/pedidos')
+  revalidatePath('/cuenta')
   return { success: true }
 }

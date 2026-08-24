@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDateTime, formatPrice } from '@/lib/utils/format'
 import { mapOrders } from '@/lib/utils/mapOrder'
+import { ORDER_STATUS_LABELS } from '@/lib/utils/orderStatus'
 
 export default async function AccountPage() {
   const supabase = await createClient()
@@ -52,6 +53,9 @@ export default async function AccountPage() {
                 <p className="text-sm text-muted">{formatDateTime(order.created_at)}</p>
                 <p className="font-semibold">{formatPrice(order.total)}</p>
               </div>
+              <p className="mt-2 text-sm font-medium text-shiba-dark">
+                {ORDER_STATUS_LABELS[order.fulfillment_status]}
+              </p>
               <ul className="mt-3 space-y-1 text-sm">
                 {order.items.map((item) => (
                   <li key={`${order.id}-${item.id}`}>

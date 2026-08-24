@@ -5,6 +5,22 @@ import {
 } from '@/lib/types/product'
 import { toNumber } from '@/lib/utils/format'
 
+function parseImageUrls(value: unknown): string[] {
+  const raw = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? (() => {
+          try {
+            const parsed = JSON.parse(value)
+            return Array.isArray(parsed) ? parsed : []
+          } catch {
+            return []
+          }
+        })()
+      : []
+  return [...new Set(raw.filter((url): url is string => typeof url === 'string' && url.length > 0))]
+}
+
 export function mapProduct(row: Record<string, unknown>): Product {
   const category = typeof row.category === 'string' && isProductCategory(row.category)
     ? row.category
@@ -15,10 +31,12 @@ export function mapProduct(row: Record<string, unknown>): Product {
     (typeof row.title === 'string' && row.title.trim()) ||
     'Producto'
 
-  const image =
+  const cover =
     (typeof row.image_url === 'string' && row.image_url) ||
     (typeof row.image === 'string' && row.image) ||
     null
+  const image_urls = parseImageUrls(row.image_urls)
+  const photos = [...new Set([cover, ...image_urls].filter((url): url is string => Boolean(url)))]
 
   return {
     id: String(row.id ?? ''),
@@ -26,7 +44,8 @@ export function mapProduct(row: Record<string, unknown>): Product {
     description: typeof row.description === 'string' ? row.description : null,
     price: toNumber(row.price),
     category,
-    image_url: image,
+    image_url: photos[0] ?? null,
+    image_urls: photos,
     featured: Boolean(row.featured),
     created_at: String(row.created_at ?? new Date().toISOString()),
   }

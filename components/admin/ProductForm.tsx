@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { CATEGORY_LABELS, PRODUCT_CATEGORIES, type Product } from '@/lib/types/product'
 import { upsertProduct } from '@/app/actions/products'
@@ -103,14 +104,46 @@ export default function ProductForm({ product, onDone }: Props) {
       </label>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Foto</label>
+        <label className="mb-1 block text-sm font-medium">Foto principal</label>
         <input
           name="image"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="w-full text-sm"
         />
-        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Máximo 4 MB.</p>
+        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Máximo 4 MB por archivo.</p>
+        {product?.image_url && (
+          <input type="hidden" name="existing_image_url" value={product.image_url} />
+        )}
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">Fotos extra (opcional)</label>
+        {product && product.image_urls.filter((url) => url !== product.image_url).length > 0 && (
+          <ul className="mb-2 space-y-2">
+            {product.image_urls
+              .filter((url) => url !== product.image_url)
+              .map((url) => (
+                <li key={url}>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="keep_gallery" value={url} defaultChecked />
+                    <span className="relative h-12 w-12 overflow-hidden rounded-lg bg-background">
+                      <Image src={url} alt="" fill className="object-cover" sizes="48px" />
+                    </span>
+                    <span className="text-muted">Mantener</span>
+                  </label>
+                </li>
+              ))}
+          </ul>
+        )}
+        <input
+          name="gallery"
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          className="w-full text-sm"
+        />
+        <p className="mt-1 text-xs text-muted">Hasta 4 extras. El total del formulario no puede pasar 4 MB.</p>
       </div>
 
       {error && <p className="text-sm text-red-700">{error}</p>}

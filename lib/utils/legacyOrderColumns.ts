@@ -3,6 +3,13 @@ export function missingNotNullColumn(message: string): string | null {
   return match?.[1] ?? null
 }
 
+export function missingSchemaColumn(message: string): string | null {
+  const quoted = /Could not find the '([^']+)' column/i.exec(message)
+  if (quoted) return quoted[1]
+  const pg = /column "([^"]+)" of relation/.exec(message)
+  return pg?.[1] ?? null
+}
+
 export function legacyOrderValue(
   column: string,
   known: { name: string; email: string; notes: string; items: unknown }

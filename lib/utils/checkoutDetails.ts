@@ -15,8 +15,6 @@ export const PRINT_COLORS = [
 
 export const PRINT_MATERIALS = ['PLA', 'PETG', 'A consultar'] as const
 
-export const LEAD_TIME_COPY =
-  'Se imprime a pedido. El plazo típico es de 5 a 10 días hábiles, según la pieza y la cola de trabajo.'
 
 export type CheckoutDetails = {
   color: string

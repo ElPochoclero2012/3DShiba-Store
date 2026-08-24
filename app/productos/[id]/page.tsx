@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AddToCartButton from '@/components/AddToCartButton'
+import ProductGallery from '@/components/ProductGallery'
 import { CATEGORY_LABELS } from '@/lib/types/product'
 import { formatPrice } from '@/lib/utils/format'
 import { mapProduct } from '@/lib/utils/mapProduct'
@@ -24,20 +24,7 @@ export default async function ProductDetailPage({
 
   return (
     <main className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:grid-cols-2">
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-card">
-        {product.image_url ? (
-          <Image
-            src={product.image_url}
-            alt={product.name}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted">Sin foto</div>
-        )}
-      </div>
+      <ProductGallery name={product.name} photos={product.image_urls} />
 
       <div>
         <Link href="/productos" className="text-sm font-medium text-shiba hover:underline">

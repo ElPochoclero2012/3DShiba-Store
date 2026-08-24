@@ -56,16 +56,15 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 - El carrito vive en `localStorage` por usuario (`3dshiba-carts`): al salir se vacía en pantalla y al volver a entrar con la misma cuenta se restaura. Solo este navegador; no cruza dispositivos.
 - Confirm email está apagado en Supabase (el SMTP gratis es flojo). Promover admin: solo SQL Editor. RLS de `profiles`: REVOKE + trigger `protect_profile_role` (hay que haber corrido ese bloque).
 
-### En código, todavía sin testear en flujo real
+### En código, todavía sin testear / a verificar
 
-Subido / en el repo; el dueño **aún no lo recorrió** (pedido → admin → visto, ni color/entrega de punta a punta):
+1. **Admin de pedidos** — `/admin/pedidos`. Si no aparecen pedidos de otros usuarios es RLS: hay que correr `is_admin()`, `admin_list_orders()` y `fulfillment_status` en `schema.sql`. Estados: pendiente / en proceso / completado / enviado.
+2. **Color / material / entrega en el carrito** — chips + retiro/envío. Van al WhatsApp y al pedido.
+3. **Plazos** — *5 a 10 días hábiles* en carrito y `/nosotros`.
+4. **Favicon y OG** — logo.
+5. **Varias fotos por producto** — `image_url` principal + `image_urls` extras (opcional, hasta 5 en total). Galería en la ficha.
 
-1. **Admin de pedidos** — `/admin/pedidos` (el link Admin va acá). Lista fecha, cliente, email, items, notas y badge Nuevo. **Marcar como visto** escribe `seen_at`. Pestaña Productos sigue en `/admin/dashboard`.
-2. **Color / material / entrega en el carrito** — chips de color, PLA/PETG, retiro en Mar de Cobo o envío (zona obligatoria). Van al mensaje de WhatsApp y a `orders.notes` + `shipping_address`. Sin color y entrega no se confirma.
-3. **Plazos** — copy fijo: *5 a 10 días hábiles* (`LEAD_TIME_COPY` en `lib/utils/checkoutDetails.ts`). Está en el carrito y en `/nosotros`.
-4. **Favicon y preview al compartir** — logo en `icons` + Open Graph (`metadataBase` = URL de Vercel).
-
-Para que el admin vea **todos** los pedidos y pueda marcarlos vistos, falta correr en el SQL Editor (si no se corrió aún) el bloque de `seen_at` + policies **Admins can read all orders** / **Admins can update orders** al final de `supabase/schema.sql`. Sin eso, RLS solo deja ver los pedidos propios.
+Para que el admin vea **todos** los pedidos: SQL Editor → bloque `admin_list_orders` + `fulfillment_status` al final de `supabase/schema.sql`. Sin eso, RLS solo muestra los propios. Para fotos extra: `image_urls` en `products`.
 
 ### Base de datos y storage
 
@@ -89,8 +88,8 @@ Para que el admin vea **todos** los pedidos y pueda marcarlos vistos, falta corr
 | `app/carrito/page.tsx` | Items, color/material/entrega, WhatsApp. |
 | `app/cuenta/page.tsx` | Email + historial del usuario. |
 | `app/nosotros/page.tsx` | Taller, plazos, Mar de Cobo. |
-| `app/admin/pedidos/page.tsx` | Pedidos + visto. |
-| `app/admin/dashboard/page.tsx` | CRUD productos e imágenes. |
+| `app/admin/pedidos/page.tsx` | Pedidos de todos + estado. |
+| `app/admin/dashboard/page.tsx` | CRUD productos (foto principal + extras). |
 | `app/login/page.tsx` | Email y Google. |
 
 Navbar: sesión, carrito, Mi cuenta / Salir, Admin si corresponde. Footer: logo + nosotros + Instagram.
@@ -106,10 +105,9 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Correr en Supabase el SQL de `seen_at` + policies admin de `orders` (si no está).
-2. **Probar lo nuevo:** login → carrito (color + retiro o envío) → WhatsApp → confirmar → **Mi cuenta** y **Admin → Pedidos** → marcar visto.
+1. Correr en Supabase el SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` / `image_urls` (final de `schema.sql`).
+2. Probar: pedido con otra cuenta → Admin → Pedidos (tienen que verse todos) → cambiar estado. En Productos, subir fotos extra y ver la ficha.
 3. Pushear a `main` para que Vercel despliegue (el dueño commitea/pushea).
-4. Si el plazo real no es 5–10 días hábiles, cambiar `LEAD_TIME_COPY`.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import CustomQuoteButton from '@/components/CustomQuoteButton'
-import { LEAD_TIME_COPY } from '@/lib/utils/checkoutDetails'
 
 export const metadata: Metadata = {
   title: 'Sobre nosotros',
@@ -27,10 +26,7 @@ export default function AboutPage() {
             está en la tienda y tenés el STL o 3MF, pedí una cotización y lo vemos por chat.
           </p>
         </section>
-        <section className="rounded-2xl border border-line bg-card p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Plazos</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted">{LEAD_TIME_COPY}</p>
-        </section>
+
         <section className="rounded-2xl border border-line bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Dónde estamos</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
