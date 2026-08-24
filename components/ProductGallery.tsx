@@ -1,10 +1,37 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 const INTERVAL_MS = 6000
+
+function slideClass(dir: 1 | -1, role: 'in' | 'out') {
+  if (role === 'out') return dir === 1 ? 'gallery-out-next' : 'gallery-out-prev'
+  return dir === 1 ? 'gallery-in-next' : 'gallery-in-prev'
+}
+
+function Slide({
+  url,
+  name,
+  fit,
+  sizes,
+  className,
+  onAnimationEnd,
+}: {
+  url: string
+  name: string
+  fit: 'object-cover' | 'object-contain'
+  sizes: string
+  className?: string
+  onAnimationEnd?: () => void
+}) {
+  return (
+    <div className={`absolute inset-0 ${className ?? ''}`} onAnimationEnd={onAnimationEnd}>
+      <Image src={url} alt={name} fill className={fit} sizes={sizes} />
+    </div>
+  )
+}
 
 export default function ProductGallery({
   name,
@@ -14,13 +41,34 @@ export default function ProductGallery({
   photos: string[]
 }) {
   const [current, setCurrent] = useState(0)
+  const [outgoing, setOutgoing] = useState<number | null>(null)
+  const [dir, setDir] = useState<1 | -1>(1)
   const [lightbox, setLightbox] = useState(false)
+  const outgoingRef = useRef<number | null>(null)
   const photo = photos[current] ?? photos[0]
   const many = photos.length > 1
 
+  const clearOutgoing = () => {
+    outgoingRef.current = null
+    setOutgoing(null)
+  }
+
+  const goTo = (index: number, direction: 1 | -1) => {
+    if (!many || outgoingRef.current !== null) return
+    const next = (index + photos.length) % photos.length
+    if (next === current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setCurrent(next)
+      return
+    }
+    setDir(direction)
+    outgoingRef.current = current
+    setOutgoing(current)
+    setCurrent(next)
+  }
+
   const go = (direction: -1 | 1) => {
-    if (!many) return
-    setCurrent((index) => (index + direction + photos.length) % photos.length)
+    goTo(current + direction, direction)
   }
 
   useEffect(() => {
@@ -28,12 +76,15 @@ export default function ProductGallery({
   }, [current, photos.length])
 
   useEffect(() => {
+    if (outgoing === null) return
+    const timer = window.setTimeout(clearOutgoing, 500)
+    return () => window.clearTimeout(timer)
+  }, [outgoing])
+
+  useEffect(() => {
     if (!many || lightbox) return
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (media.matches) return
-    const timer = window.setInterval(() => {
-      setCurrent((index) => (index + 1) % photos.length)
-    }, INTERVAL_MS)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const timer = window.setInterval(() => go(1), INTERVAL_MS)
     return () => window.clearInterval(timer)
   }, [many, lightbox, current, photos.length])
 
@@ -41,17 +92,12 @@ export default function ProductGallery({
     if (!lightbox) return
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setLightbox(false)
-      if (!many) return
-      if (event.key === 'ArrowLeft') {
-        setCurrent((index) => (index - 1 + photos.length) % photos.length)
-      }
-      if (event.key === 'ArrowRight') {
-        setCurrent((index) => (index + 1) % photos.length)
-      }
+      if (event.key === 'ArrowLeft') go(-1)
+      if (event.key === 'ArrowRight') go(1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [lightbox, many, photos.length])
+  }, [lightbox, current, photos.length, many])
 
   if (!photo) {
     return (
@@ -60,6 +106,28 @@ export default function ProductGallery({
       </div>
     )
   }
+
+  const slides = (fit: 'object-cover' | 'object-contain', sizes: string) => (
+    <>
+      {outgoing !== null && photos[outgoing] && (
+        <Slide
+          url={photos[outgoing]}
+          name={name}
+          fit={fit}
+          sizes={sizes}
+          className={slideClass(dir, 'out')}
+          onAnimationEnd={clearOutgoing}
+        />
+      )}
+      <Slide
+        url={photo}
+        name={name}
+        fit={fit}
+        sizes={sizes}
+        className={outgoing === null ? undefined : slideClass(dir, 'in')}
+      />
+    </>
+  )
 
   const arrows = many ? (
     <>
@@ -94,17 +162,10 @@ export default function ProductGallery({
         <button
           type="button"
           onClick={() => setLightbox(true)}
-          className="absolute inset-0"
+          className="absolute inset-0 overflow-hidden"
           aria-label={`Ver ${name} más grande`}
         >
-          <Image
-            src={photo}
-            alt={name}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
+          {slides('object-cover', '(max-width: 768px) 100vw, 50vw')}
         </button>
         {arrows}
       </div>
@@ -114,7 +175,7 @@ export default function ProductGallery({
             <button
               key={url}
               type="button"
-              onClick={() => setCurrent(index)}
+              onClick={() => goTo(index, index > current ? 1 : -1)}
               className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border ${
                 index === current ? 'border-shiba ring-2 ring-shiba/40' : 'border-line'
               }`}
@@ -137,16 +198,16 @@ export default function ProductGallery({
           <button
             type="button"
             onClick={() => setLightbox(false)}
-            className="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-ink"
+            className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-ink"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
           </button>
           <div
-            className="relative h-[min(90vh,900px)] w-full max-w-5xl"
+            className="relative h-[min(90vh,900px)] w-full max-w-5xl overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <Image src={photo} alt={name} fill className="object-contain" sizes="100vw" />
+            {slides('object-contain', '100vw')}
             {arrows}
           </div>
         </div>

@@ -70,7 +70,7 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 
 1. **Admin de pedidos** — SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` **ya corrido** (2026-08-24). Falta probar en `/admin/pedidos`: pedidos de la cuenta `user` visibles con la cuenta `admin`, y cambiar estado.
 2. **Color y entrega en el carrito** — chips de color (solo PLA) + retiro/envío. Van al WhatsApp y al pedido. Sin plazos en la web: se coordinan por chat.
-3. **Varias fotos por producto** — En admin se reordenan y eliminan (la primera es la principal). En la ficha: carrusel cada 6s, flechas, clic para ampliar. Subida desde el navegador al bucket.
+3. **Varias fotos por producto** — En admin se reordenan y eliminan (la primera es la principal). En la ficha: carrusel cada 6s con deslizamiento, flechas, clic para ampliar. Subida desde el navegador al bucket.
 
 ### Base de datos y storage
 
