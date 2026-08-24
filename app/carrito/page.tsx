@@ -23,7 +23,6 @@ export default function CartPage() {
   )
   const [checkout, setCheckout] = useState<CheckoutDraft>({
     color: '',
-    material: 'PLA',
     delivery: '',
     zone: '',
     notes: '',

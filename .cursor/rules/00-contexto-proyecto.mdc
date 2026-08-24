@@ -6,9 +6,9 @@ alwaysApply: true
 
 Leé y respetá `CONTEXT.md` en la raíz del repo. Resumen no negociable:
 
-- E-commerce de impresiones 3D (figuras, accesorios, mates, vasos, juegos). **Mar de Cobo.** **Solo FDM** (no resina).
+- E-commerce de impresiones 3D (figuras, accesorios, mates, vasos, juegos). **Mar de Cobo.** **Solo FDM, solo PLA** (no resina).
 - Pedidos a medida: el cliente manda el archivo (STL/3MF) → WhatsApp (`CustomQuoteButton`). Sin configurador ni uploader.
-- **No hay pasarela de pago.** Checkout = `wa.me` + color/material/entrega en el carrito. Pedidos en `orders`; admin en `/admin/pedidos`.
+- **No hay pasarela de pago.** Checkout = `wa.me` + color/entrega en el carrito. Solo PLA. Pedidos en `orders`; admin en `/admin/pedidos`.
 - Stack: Next.js App Router + TypeScript + Tailwind + Supabase (RLS, Auth email/Google, Storage `product-images`) + Zustand para el carrito (por usuario en este navegador).
 - En este Next la sesión se refresca en `proxy.ts`, no en `middleware.ts`.
 - Landing, catálogo, ficha, carrito, cuenta, nosotros y admin **ya existen**. No recrearlos; extender o corregir.

@@ -10,7 +10,7 @@ Fuente de verdad del producto. Actualizar este archivo cuando cambie una decisi�
 
 ## Alcance del taller
 
-- **Solo impresión FDM.** No hay resina ni otras tecnologías. No vender ni filtrar “resina” en copy, categorías o admin.
+- **Solo impresión FDM, solo PLA.** No hay resina, PETG ni otros materiales. No vender ni filtrar “resina” en copy, categorías o admin.
 - **Pedidos a medida:** el cliente manda el archivo (STL/3MF/etc.). Canal WhatsApp (`CustomQuoteButton` + `formatCustomPrintQuote`). Sin formulario de cotización ni uploader.
 - No decir que no modelamos. No mencionar resina.
 - Marca: celeste `#4db8c2` / `#2f8f99` con letras blancas. Logo en `public/logo-3dshiba.jpg`. Instagram: `https://www.instagram.com/3dshiba.store/`
@@ -59,10 +59,8 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 ### En código, todavía sin testear / a verificar
 
 1. **Admin de pedidos** — `/admin/pedidos`. Si no aparecen pedidos de otros usuarios es RLS: hay que correr `is_admin()`, `admin_list_orders()` y `fulfillment_status` en `schema.sql`. Estados: pendiente / en proceso / completado / enviado.
-2. **Color / material / entrega en el carrito** — chips + retiro/envío. Van al WhatsApp y al pedido.
-3. **Plazos** — *5 a 10 días hábiles* en carrito y `/nosotros`.
-4. **Favicon y OG** — logo.
-5. **Varias fotos por producto** — `image_url` principal + `image_urls` extras (opcional, hasta 5 en total). Galería en la ficha.
+2. **Color y entrega en el carrito** — chips de color (solo PLA) + retiro/envío. Van al WhatsApp y al pedido. Sin plazos en la web: se coordinan por chat.
+3. **Varias fotos por producto** — `image_url` principal + `image_urls` extras (opcional, hasta 5 en total). Galería en la ficha.
 
 Para que el admin vea **todos** los pedidos: SQL Editor → bloque `admin_list_orders` + `fulfillment_status` al final de `supabase/schema.sql`. Sin eso, RLS solo muestra los propios. Para fotos extra: `image_urls` en `products`.
 
@@ -85,9 +83,9 @@ Para que el admin vea **todos** los pedidos: SQL Editor → bloque `admin_list_o
 | `app/page.tsx` | Hero, destacados, bloque FDM / archivo propio. |
 | `app/productos/page.tsx` | Catálogo: búsqueda, categoría, orden. |
 | `app/productos/[id]/page.tsx` | Ficha. Cantidad en `AddToCartButton`. |
-| `app/carrito/page.tsx` | Items, color/material/entrega, WhatsApp. |
+| `app/carrito/page.tsx` | Items, color, entrega, WhatsApp (material fijo: PLA). |
 | `app/cuenta/page.tsx` | Email + historial del usuario. |
-| `app/nosotros/page.tsx` | Taller, plazos, Mar de Cobo. |
+| `app/nosotros/page.tsx` | Taller, Mar de Cobo, retiro/envío. |
 | `app/admin/pedidos/page.tsx` | Pedidos de todos + estado. |
 | `app/admin/dashboard/page.tsx` | CRUD productos (foto principal + extras). |
 | `app/login/page.tsx` | Email y Google. |
@@ -100,7 +98,7 @@ Guía al tocar superficies existentes:
 
 1. **Landing** — Hero, destacados, FDM / archivo propio.
 2. **Catálogo** — Grilla, búsqueda, orden.
-3. **Carrito / WhatsApp** — Color, material, entrega, cantidades → `wa.me`.
+3. **Carrito / WhatsApp** — Color, entrega, cantidades → `wa.me`. Material siempre PLA.
 4. **Admin** — Pedidos del día + CRUD de productos.
 
 ## Próximo paso

@@ -30,8 +30,8 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
       return { error: 'El carrito está vacío.' }
     }
 
-    if (!input.details?.color || !input.details.material || !input.details.delivery) {
-      return { error: 'Elegí color, material y forma de entrega.' }
+    if (!input.details?.color || !input.details.delivery) {
+      return { error: 'Elegí color y forma de entrega.' }
     }
 
     const ids = [...new Set(input.items.map((item) => item.id).filter(Boolean))]

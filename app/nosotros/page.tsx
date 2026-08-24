@@ -22,8 +22,9 @@ export default function AboutPage() {
         <section className="rounded-2xl border border-line bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Cómo pedís</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Elegís del catálogo, armás el carrito y confirmás por WhatsApp. Si tu pieza no
-            está en la tienda y tenés el STL o 3MF, pedí una cotización y lo vemos por chat.
+            Elegís del catálogo, armás el carrito y confirmás por WhatsApp. Imprimimos en
+            PLA; el color lo indicás al pedir. Si tu pieza no está en la tienda y tenés el
+            STL o 3MF, pedí una cotización y lo vemos por chat.
           </p>
         </section>
 

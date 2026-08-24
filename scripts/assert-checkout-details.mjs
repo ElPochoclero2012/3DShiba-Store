@@ -4,14 +4,14 @@ import {
   formatDeliveryLine,
   toCheckoutDetails,
 } from '../lib/utils/checkoutDetails.ts'
-assert.equal(toCheckoutDetails({ color: '', material: 'PLA', delivery: 'retiro', zone: '' }), null)
-assert.equal(toCheckoutDetails({ color: 'Negro', material: 'PLA', delivery: '', zone: '' }), null)
+assert.equal(toCheckoutDetails({ color: '', delivery: 'retiro', zone: '' }), null)
+assert.equal(toCheckoutDetails({ color: 'Negro', delivery: '', zone: '' }), null)
 assert.equal(
-  toCheckoutDetails({ color: 'Negro', material: 'PLA', delivery: 'envio', zone: '' }),
+  toCheckoutDetails({ color: 'Negro', delivery: 'envio', zone: '' }),
   null
 )
 assert.deepEqual(
-  toCheckoutDetails({ color: 'Negro', material: 'PLA', delivery: 'retiro', zone: '' }),
+  toCheckoutDetails({ color: 'Negro', delivery: 'retiro', zone: '' }),
   { color: 'Negro', material: 'PLA', delivery: 'retiro', zone: undefined, notes: undefined }
 )
 
@@ -28,6 +28,7 @@ const notes = formatCheckoutNotes({
   notes: 'Sin soportes a la vista',
 })
 assert.match(notes, /Color: Negro/)
+assert.match(notes, /Material: PLA/)
 assert.match(notes, /Retiro en Mar de Cobo/)
 assert.match(notes, /Sin soportes/)
 

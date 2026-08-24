@@ -13,12 +13,11 @@ export const PRINT_COLORS = [
   'A consultar',
 ] as const
 
-export const PRINT_MATERIALS = ['PLA', 'A consultar'] as const
-
+export const PRINT_MATERIAL = 'PLA'
 
 export type CheckoutDetails = {
   color: string
-  material: string
+  material: typeof PRINT_MATERIAL
   delivery: 'retiro' | 'envio'
   zone?: string
   notes?: string
@@ -26,16 +25,15 @@ export type CheckoutDetails = {
 
 export function toCheckoutDetails(value: {
   color: string
-  material: string
   delivery: '' | 'retiro' | 'envio'
   zone: string
   notes?: string
 }): CheckoutDetails | null {
-  if (!value.color || !value.material || !value.delivery) return null
+  if (!value.color || !value.delivery) return null
   if (value.delivery === 'envio' && !value.zone.trim()) return null
   return {
     color: value.color,
-    material: value.material,
+    material: PRINT_MATERIAL,
     delivery: value.delivery,
     zone: value.zone.trim() || undefined,
     notes: value.notes,

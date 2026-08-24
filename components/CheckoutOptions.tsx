@@ -1,12 +1,7 @@
-import {
-  LEAD_TIME_COPY,
-  PRINT_COLORS,
-  PRINT_MATERIALS,
-} from '@/lib/utils/checkoutDetails'
+import { PRINT_COLORS } from '@/lib/utils/checkoutDetails'
 
 export type CheckoutDraft = {
   color: string
-  material: string
   delivery: '' | 'retiro' | 'envio'
   zone: string
   notes: string
@@ -33,7 +28,7 @@ export default function CheckoutOptions({ value, onChange }: Props) {
       <div>
         <p className="text-sm font-medium text-ink">Color</p>
         <p className="mt-0.5 text-xs text-muted">
-          Si hay más de un color, aclaralo en las notas.
+          Imprimimos en PLA. Si hay más de un color, aclaralo en las notas.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {PRINT_COLORS.map((color) => (
@@ -44,22 +39,6 @@ export default function CheckoutOptions({ value, onChange }: Props) {
               className={chipClass(value.color === color)}
             >
               {color}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-ink">Material</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {PRINT_MATERIALS.map((material) => (
-            <button
-              key={material}
-              type="button"
-              onClick={() => set({ material })}
-              className={chipClass(value.material === material)}
-            >
-              {material}
             </button>
           ))}
         </div>
@@ -106,10 +85,6 @@ export default function CheckoutOptions({ value, onChange }: Props) {
           <p className="mt-2 text-sm text-muted">Retiro en Mar de Cobo, a coordinar.</p>
         )}
       </div>
-
-      <p className="rounded-xl bg-background p-3 text-sm leading-relaxed text-muted">
-        {LEAD_TIME_COPY}
-      </p>
 
       <label className="block text-sm font-medium text-ink">
         Notas para el pedido

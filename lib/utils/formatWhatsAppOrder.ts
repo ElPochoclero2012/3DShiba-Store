@@ -42,7 +42,7 @@ export function formatWhatsAppOrder(params: {
 
   if (details) {
     lines.push(formatCheckoutNotes(details))
-    } else {
+  } else {
     const trimmedNotes = params.notes?.trim()
     if (trimmedNotes) lines.push(`Notas: ${trimmedNotes}`)
   }

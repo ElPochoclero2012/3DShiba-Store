@@ -83,7 +83,7 @@ export default function WhatsAppCheckoutButton({ items, email, details }: Props)
         Confirmar pedido por WhatsApp
       </button>
       {!details && items.length > 0 && (
-        <p className="text-sm text-muted">Elegí color, material y cómo lo recibís.</p>
+        <p className="text-sm text-muted">Elegí color y cómo lo recibís.</p>
       )}
 
       {askConfirm && (
