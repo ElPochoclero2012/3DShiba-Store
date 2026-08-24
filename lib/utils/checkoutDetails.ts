@@ -13,7 +13,7 @@ export const PRINT_COLORS = [
   'A consultar',
 ] as const
 
-export const PRINT_MATERIALS = ['PLA', 'PETG', 'A consultar'] as const
+export const PRINT_MATERIALS = ['PLA', 'A consultar'] as const
 
 
 export type CheckoutDetails = {

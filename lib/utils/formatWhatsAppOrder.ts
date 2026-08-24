@@ -1,7 +1,6 @@
 import type { CartItem } from '@/lib/types/product'
 import {
   formatCheckoutNotes,
-  LEAD_TIME_COPY,
   type CheckoutDetails,
 } from '@/lib/utils/checkoutDetails'
 import { formatPrice, toNumber } from '@/lib/utils/format'
@@ -43,8 +42,7 @@ export function formatWhatsAppOrder(params: {
 
   if (details) {
     lines.push(formatCheckoutNotes(details))
-    lines.push(LEAD_TIME_COPY)
-  } else {
+    } else {
     const trimmedNotes = params.notes?.trim()
     if (trimmedNotes) lines.push(`Notas: ${trimmedNotes}`)
   }
