@@ -13,3 +13,4 @@ Leé y respetá `CONTEXT.md` en la raíz del repo. Resumen no negociable:
 - En este Next la sesión se refresca en `proxy.ts`, no en `middleware.ts`.
 - Landing, catálogo, ficha, carrito, cuenta, nosotros y admin **ya existen**. No recrearlos; extender o corregir.
 - Admin: rol `admin` en `profiles` (`lib/utils/admin.ts`).
+- SEO: búsqueda de marca “3dshiba”. Detalle y próximo paso en `CONTEXT.md` (sección SEO). No inventar plugins ni keyword stuffing.

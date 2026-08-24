@@ -42,7 +42,17 @@ No agregar pasarela de pago salvo pedido explícito.
 
 Repo: `shibastore`. Next 16, React 19. En este Next la sesión se refresca en `proxy.ts` (no hay `middleware.ts`).
 
-## Estado actual (2026-08-23)
+## SEO (marca: “3dshiba”)
+
+Objetivo: que Google muestre la tienda primero al buscar **3dshiba**. Es búsqueda de marca (nombre casi único); no hace falta rellenar keywords. Un `meta` no rankea solo: Google tiene que descubrir, leer y asociar el nombre con este sitio.
+
+**Hoy:** título/descripción globales y Open Graph en `app/layout.tsx` (`3DShiba Store`, FDM, Mar de Cobo). `lang="es"`. El H1 de la home no dice 3DShiba. No hay `sitemap.xml` ni `robots.txt`. Las fichas no tienen `generateMetadata` (todas heredan el título del layout). Dominio actual: `3dshiba-store.vercel.app` (Instagram usa `3dshiba.store`).
+
+**Qué mueve el ranking de marca (orden):** Search Console (indexar `/`, `/productos`, `/nosotros`) → mismo nombre + link a la web en Instagram/WhatsApp → H1 con “3DShiba Store” → sitemap → dominio propio cuando se pueda. No plugins de SEO ni copy genérico tipo “impresión 3D barata”.
+
+Búsquedas genéricas (“mates impresos 3D”, etc.) son otro juego (tiempo y competencia); no es el foco ahora.
+
+## Estado actual (2026-08-24)
 
 La tienda está **en el aire** en Vercel con productos reales. El circuito viejo (login, catálogo, carrito → WhatsApp, crear producto en admin) ya se usó. Lo de abajo es lo que hay hoy, no un wishlist.
 
@@ -103,9 +113,9 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Correr en Supabase el SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` / `image_urls` (final de `schema.sql`).
-2. Probar: pedido con otra cuenta → Admin → Pedidos (tienen que verse todos) → cambiar estado. En Productos, subir fotos extra y ver la ficha.
-3. Pushear a `main` para que Vercel despliegue (el dueño commitea/pushea).
+1. Pushear a `main` el fix de checkout (PLA fijo, sin plazos, sin `LEAD_TIME_COPY`) para que Vercel deje de fallar. El dueño commitea/pushea.
+2. SEO de marca (cuando se retome): Search Console → sitemap/`robots.txt` → H1 con 3DShiba → `generateMetadata` en fichas. Link a la web desde Instagram.
+3. Correr en Supabase el SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` / `image_urls` (final de `schema.sql`) y probar pedidos de otra cuenta en `/admin/pedidos`.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 
