@@ -68,11 +68,9 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 
 ### En código, todavía sin testear / a verificar
 
-1. **Admin de pedidos** — `/admin/pedidos`. Si no aparecen pedidos de otros usuarios es RLS: hay que correr `is_admin()`, `admin_list_orders()` y `fulfillment_status` en `schema.sql`. Estados: pendiente / en proceso / completado / enviado.
+1. **Admin de pedidos** — SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` **ya corrido** (2026-08-24). Falta probar en `/admin/pedidos`: pedidos de la cuenta `user` visibles con la cuenta `admin`, y cambiar estado.
 2. **Color y entrega en el carrito** — chips de color (solo PLA) + retiro/envío. Van al WhatsApp y al pedido. Sin plazos en la web: se coordinan por chat.
-3. **Varias fotos por producto** — `image_url` principal + `image_urls` extras (opcional, hasta 5 en total). Galería en la ficha.
-
-Para que el admin vea **todos** los pedidos: SQL Editor → bloque `admin_list_orders` + `fulfillment_status` al final de `supabase/schema.sql`. Sin eso, RLS solo muestra los propios. Para fotos extra: `image_urls` en `products`.
+3. **Varias fotos por producto** — `image_urls` existe. Las fotos se comprimen y suben al bucket desde el navegador (no pasan por Vercel; el 413 era el tope de ~4.5 MB del server action).
 
 ### Base de datos y storage
 
@@ -113,9 +111,8 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Pushear este paquete SEO a `main`. El dueño commitea/pushea.
-2. Google Search Console: dar de alta `https://3dshiba-store.vercel.app`, pedir indexación de `/`, `/productos`, `/nosotros` y enviar `https://3dshiba-store.vercel.app/sitemap.xml`. Link a la web desde Instagram.
-3. Correr en Supabase el SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` / `image_urls` (final de `schema.sql`) y probar pedidos de otra cuenta en `/admin/pedidos`.
+1. Probar en la web: pedido con la cuenta `user` → entrar con `admin` → `/admin/pedidos` (tiene que verse) → cambiar estado. En Productos, fotos extra y galería en la ficha.
+2. Google: esperar indexación (sitemap ya enviado). Link de Instagram ya está.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 

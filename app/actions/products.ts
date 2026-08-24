@@ -4,10 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { isProductCategory } from '@/lib/types/product'
 import { requireAdmin } from '@/lib/utils/admin'
 import { toNumber } from '@/lib/utils/format'
-
-const MAX_SIZE = 4 * 1024 * 1024
-const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_PHOTOS = 5
+import {
+  isProductStorageUrl,
+  MAX_PRODUCT_PHOTOS,
+  storagePathFromUrl,
+} from '@/lib/utils/productImages'
 
 function asError(error: unknown) {
   return error instanceof Error ? error.message : 'No se pudo guardar el producto'
@@ -24,19 +25,16 @@ function slugFromName(name: string, id: string) {
   return `${base || 'producto'}-${id.slice(0, 8)}`
 }
 
-function storagePathFromUrl(url: string | null | undefined) {
-  if (!url) return null
-  const marker = '/product-images/'
-  const index = url.indexOf(marker)
-  if (index === -1) return null
-  return decodeURIComponent(url.slice(index + marker.length))
-}
-
 function revalidateProductPaths(id?: string) {
   revalidatePath('/')
   revalidatePath('/productos')
   revalidatePath('/admin/dashboard')
   if (id) revalidatePath(`/productos/${id}`)
+}
+
+function takeStorageUrl(value: FormDataEntryValue | null) {
+  const url = String(value ?? '').trim()
+  return isProductStorageUrl(url) ? url : ''
 }
 
 export async function upsertProduct(formData: FormData) {
@@ -47,58 +45,30 @@ export async function upsertProduct(formData: FormData) {
     }
 
     const id = String(formData.get('id') ?? '').trim()
+    const productId = id || String(formData.get('product_id') ?? '').trim() || crypto.randomUUID()
     const name = String(formData.get('name') ?? '').trim()
     const description = String(formData.get('description') ?? '').trim()
     const price = toNumber(formData.get('price'))
     const category = String(formData.get('category') ?? '')
     const featured = formData.get('featured') === 'on'
-    const file = formData.get('image')
-    const galleryFiles = formData.getAll('gallery')
-    const kept = formData.getAll('keep_gallery').map(String).filter(Boolean)
-    const existingCover = String(formData.get('existing_image_url') ?? '').trim()
+    const newCover = takeStorageUrl(formData.get('new_cover_url'))
+    const existingCover = takeStorageUrl(formData.get('existing_image_url'))
+    const kept = formData.getAll('keep_gallery').map(takeStorageUrl).filter(Boolean)
+    const newGallery = formData.getAll('new_gallery_url').map(takeStorageUrl).filter(Boolean)
 
     if (!name) return { error: 'El nombre es obligatorio' }
     if (price < 0) return { error: 'El precio no puede ser negativo' }
     if (!isProductCategory(category)) return { error: 'Categoría inválida' }
 
-    const productId = id || crypto.randomUUID()
     const photos: string[] = []
-
-    async function uploadBlob(blob: Blob, filename: string) {
-      if (!ALLOWED.includes(blob.type)) {
-        return { error: 'La imagen tiene que ser JPG, PNG o WebP' }
-      }
-      if (blob.size > MAX_SIZE) {
-        return { error: 'Cada imagen no puede superar 4 MB' }
-      }
-      const ext = filename.split('.').pop()?.toLowerCase() || 'jpg'
-      const path = `${productId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-      const bytes = new Uint8Array(await blob.arrayBuffer())
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(path, bytes, { upsert: true, contentType: blob.type })
-      if (uploadError) return { error: uploadError.message }
-      return { url: supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl }
-    }
-
-    if (file instanceof Blob && file.size > 0) {
-      const uploaded = await uploadBlob(file, file instanceof File ? file.name : 'foto.jpg')
-      if (uploaded.error) return { error: uploaded.error }
-      if (uploaded.url) photos.push(uploaded.url)
-    } else if (existingCover) {
-      photos.push(existingCover)
-    }
-
+    const cover = newCover || existingCover
+    if (cover) photos.push(cover)
     for (const url of kept) {
       if (!photos.includes(url)) photos.push(url)
     }
-
-    for (const extra of galleryFiles) {
-      if (!(extra instanceof Blob) || extra.size === 0) continue
-      if (photos.length >= MAX_PHOTOS) break
-      const uploaded = await uploadBlob(extra, extra instanceof File ? extra.name : 'foto.jpg')
-      if (uploaded.error) return { error: uploaded.error }
-      if (uploaded.url && !photos.includes(uploaded.url)) photos.push(uploaded.url)
+    for (const url of newGallery) {
+      if (photos.length >= MAX_PRODUCT_PHOTOS) break
+      if (!photos.includes(url)) photos.push(url)
     }
 
     // ponytail: la DB real tiene title + slug NOT NULL (legado) además de name.

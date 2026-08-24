@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { CATEGORY_LABELS, PRODUCT_CATEGORIES, type Product } from '@/lib/types/product'
 import { upsertProduct } from '@/app/actions/products'
+import { createClient } from '@/lib/supabase/client'
+import { CATEGORY_LABELS, PRODUCT_CATEGORIES, type Product } from '@/lib/types/product'
+import { uploadProductPhoto } from '@/lib/utils/uploadProductPhoto'
 
 type Props = {
   product?: Product | null
@@ -25,6 +27,34 @@ export default function ProductForm({ product, onDone }: Props) {
 
     const form = event.currentTarget
     const formData = new FormData(form)
+    const productId = product?.id ?? crypto.randomUUID()
+    if (!product?.id) formData.set('product_id', productId)
+
+    const supabase = createClient()
+    const cover = formData.get('image')
+    if (cover instanceof File && cover.size > 0) {
+      const uploaded = await uploadProductPhoto(supabase, productId, cover)
+      if (uploaded.error) {
+        setLoading(false)
+        setError(uploaded.error)
+        return
+      }
+      if (uploaded.url) formData.set('new_cover_url', uploaded.url)
+    }
+    formData.delete('image')
+
+    for (const extra of formData.getAll('gallery')) {
+      if (!(extra instanceof File) || extra.size === 0) continue
+      const uploaded = await uploadProductPhoto(supabase, productId, extra)
+      if (uploaded.error) {
+        setLoading(false)
+        setError(uploaded.error)
+        return
+      }
+      if (uploaded.url) formData.append('new_gallery_url', uploaded.url)
+    }
+    formData.delete('gallery')
+
     let result: { error?: string }
     try {
       result = await upsertProduct(formData)
@@ -111,7 +141,7 @@ export default function ProductForm({ product, onDone }: Props) {
           accept="image/jpeg,image/png,image/webp"
           className="w-full text-sm"
         />
-        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Máximo 4 MB por archivo.</p>
+        <p className="mt-1 text-xs text-muted">JPG, PNG o WebP. Se comprimen al subir.</p>
         {product?.image_url && (
           <input type="hidden" name="existing_image_url" value={product.image_url} />
         )}
@@ -143,7 +173,7 @@ export default function ProductForm({ product, onDone }: Props) {
           accept="image/jpeg,image/png,image/webp"
           className="w-full text-sm"
         />
-        <p className="mt-1 text-xs text-muted">Hasta 4 extras. El total del formulario no puede pasar 4 MB.</p>
+        <p className="mt-1 text-xs text-muted">Hasta 4 extras. Se suben directo al storage.</p>
       </div>
 
       {error && <p className="text-sm text-red-700">{error}</p>}
@@ -154,7 +184,7 @@ export default function ProductForm({ product, onDone }: Props) {
         disabled={loading}
         className="rounded-full bg-shiba px-5 py-2.5 text-sm font-semibold text-white hover:bg-shiba-dark disabled:opacity-50"
       >
-        {loading ? 'Guardando...' : product ? 'Guardar cambios' : 'Crear producto'}
+        {loading ? 'Subiendo...' : product ? 'Guardar cambios' : 'Crear producto'}
       </button>
     </form>
   )
