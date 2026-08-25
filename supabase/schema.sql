@@ -34,8 +34,8 @@ update public.products set title = name where (title is null or title = '') and 
 update public.products set name = title where (name is null or name = '') and title is not null;
 
 create index if not exists products_category_idx on public.products (category);
-create index if not exists products_featured_idx on public.products (featured);
 create index if not exists products_created_at_idx on public.products (created_at desc);
+drop index if exists public.products_featured_idx;
 
 -- =============================================================================
 -- profiles (roles)
@@ -105,6 +105,7 @@ grant execute on function internal.is_admin() to authenticated;
 
 alter table public.products enable row level security;
 
+drop policy if exists "Permitir lectura publica de productos" on public.products;
 drop policy if exists "Public can read products" on public.products;
 create policy "Public can read products"
   on public.products for select
@@ -114,20 +115,20 @@ drop policy if exists "Admins can insert products" on public.products;
 create policy "Admins can insert products"
   on public.products for insert
   to authenticated
-  with check (internal.is_admin());
+  with check ((select internal.is_admin()));
 
 drop policy if exists "Admins can update products" on public.products;
 create policy "Admins can update products"
   on public.products for update
   to authenticated
-  using (internal.is_admin())
-  with check (internal.is_admin());
+  using ((select internal.is_admin()))
+  with check ((select internal.is_admin()));
 
 drop policy if exists "Admins can delete products" on public.products;
 create policy "Admins can delete products"
   on public.products for delete
   to authenticated
-  using (internal.is_admin());
+  using ((select internal.is_admin()));
 
 -- =============================================================================
 -- RLS profiles
@@ -139,7 +140,7 @@ drop policy if exists "Users can read own profile" on public.profiles;
 create policy "Users can read own profile"
   on public.profiles for select
   to authenticated
-  using (id = auth.uid());
+  using (id = (select auth.uid()));
 
 -- El rol se cambia solo desde el SQL Editor (evitar recursión RLS y auto-promoción).
 drop policy if exists "Admins can read all profiles" on public.profiles;
@@ -194,7 +195,7 @@ create policy "Admins upload product images"
   to authenticated
   with check (
     bucket_id = 'product-images'
-    and internal.is_admin()
+    and (select internal.is_admin())
   );
 
 drop policy if exists "Admins update product images" on storage.objects;
@@ -203,7 +204,7 @@ create policy "Admins update product images"
   to authenticated
   using (
     bucket_id = 'product-images'
-    and internal.is_admin()
+    and (select internal.is_admin())
   );
 
 drop policy if exists "Admins delete product images" on storage.objects;
@@ -212,7 +213,7 @@ create policy "Admins delete product images"
   to authenticated
   using (
     bucket_id = 'product-images'
-    and internal.is_admin()
+    and (select internal.is_admin())
   );
 
 -- =============================================================================
@@ -245,34 +246,39 @@ create index if not exists orders_created_at_idx on public.orders (created_at de
 alter table public.orders enable row level security;
 
 drop policy if exists "Users can read own orders" on public.orders;
-create policy "Users can read own orders"
+drop policy if exists "Admins can read all orders" on public.orders;
+drop policy if exists "Users and admins can read orders" on public.orders;
+create policy "Users and admins can read orders"
   on public.orders for select
   to authenticated
-  using (user_id = auth.uid());
+  using (
+    user_id = (select auth.uid())
+    or (select internal.is_admin())
+  );
 
 drop policy if exists "Users can insert own orders" on public.orders;
 create policy "Users can insert own orders"
   on public.orders for insert
   to authenticated
-  with check (user_id = auth.uid());
+  with check (user_id = (select auth.uid()));
 
 drop policy if exists "Users can update own orders" on public.orders;
 drop policy if exists "Users can delete own orders" on public.orders;
-
-drop policy if exists "Admins can read all orders" on public.orders;
-create policy "Admins can read all orders"
-  on public.orders for select
-  to authenticated
-  using (internal.is_admin());
 
 drop policy if exists "Admins can update orders" on public.orders;
 create policy "Admins can update orders"
   on public.orders for update
   to authenticated
-  using (internal.is_admin())
-  with check (internal.is_admin());
+  using ((select internal.is_admin()))
+  with check ((select internal.is_admin()));
 
 -- RPCs viejos: ya no hacen falta (RLS + internal.is_admin). Fuera del REST.
 drop function if exists public.admin_list_orders();
 drop function if exists public.admin_set_order_status(uuid, text);
 drop function if exists public.is_admin();
+
+-- legado: la app usa orders.items (jsonb) y products.category (text).
+-- Tablas/columna muertas: o indexás FKs (unused index) o no (unindexed FK).
+drop table if exists public.order_items;
+drop table if exists public.product_variants;
+alter table public.products drop column if exists category_id;

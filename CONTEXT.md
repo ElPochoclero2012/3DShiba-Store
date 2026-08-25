@@ -52,7 +52,7 @@ Objetivo: que Google muestre la tienda primero al buscar **3dshiba**. Es búsque
 
 Búsquedas genéricas (“mates impresos 3D”, etc.) son otro juego (tiempo y competencia); no es el foco ahora.
 
-## Estado actual (2026-08-24)
+## Estado actual (2026-08-25)
 
 La tienda está **en el aire** en Vercel con productos reales. El circuito viejo (login, catálogo, carrito → WhatsApp, crear producto en admin) ya se usó. Lo de abajo es lo que hay hoy, no un wishlist.
 
@@ -75,9 +75,11 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 
 ### Base de datos y storage
 
-- `products`: lectura pública. Categorías `figuras`, `accesorios`, `mates`, `vasos`, `juegos`. `featured` en la home. La tabla live también tiene `title` y `slug` NOT NULL (el alta manda ambos).
-- `orders`: historial por usuario + listado admin. Schema de referencia: `supabase/schema.sql` (idempotente; la tabla vieja se altera, no se recrea).
-- Bucket `product-images` público.
+- `products`: lectura pública. Categorías `figuras`, `accesorios`, `mates`, `vasos`, `juegos` en la columna `category` (texto). `featured` en la home. La tabla live también tiene `title` y `slug` NOT NULL (el alta manda ambos).
+- `orders`: historial por usuario + listado admin. Las líneas van en `orders.items` (jsonb), no en una tabla de ítems. Schema de referencia: `supabase/schema.sql` (idempotente; la tabla vieja se altera, no se recrea).
+- Legado ya tirado en live: tablas `order_items` y `product_variants`, columna `products.category_id`. Un re-run de `schema.sql` las vuelve a dropear si reaparecen.
+- Bucket `product-images` público (URL directa; sin SELECT en `storage.objects` para no listar el bucket).
+- Advisors de Supabase: Performance quedó limpio. Security: **HaveIBeenPwned** (protección de contraseñas filtradas) pide plan pago de Auth. Se deja; no se paga por cerrar ese aviso.
 
 ### Auth y admin
 
@@ -112,9 +114,8 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Correr `supabase/schema.sql` en el SQL Editor (cierra avisos de search_path, RPC DEFINER y listado del bucket). HaveIBeenPwned queda en Auth si el plan lo permite.
-2. Probar: login, fotos de producto, `/admin/pedidos` (siguen viéndose todos).
-3. Google: esperar indexación. Google Business Profile lo arma el dueño. Dominio propio: no por ahora.
+1. Google: esperar indexación (Search Console). Google Business Profile lo arma el dueño. Dominio propio: no por ahora.
+2. HaveIBeenPwned en Security Advisor: ignorar mientras el plan sea el gratis.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 
@@ -127,3 +128,4 @@ Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 - Pasarelas de pago.
 - Reescribir el flujo WhatsApp por otro canal de checkout.
 - Nuevas dependencias si el stack actual ya resuelve el problema.
+- Subir de plan de Supabase para callar HaveIBeenPwned (Security Advisor). Se deja.
