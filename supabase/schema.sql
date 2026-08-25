@@ -67,6 +67,8 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+
 insert into public.profiles (id, email, role)
 select id, email, 'user'
 from auth.users
@@ -74,6 +76,28 @@ on conflict (id) do nothing;
 
 -- Promové tu usuario (descomentar y poner tu email):
 -- update public.profiles set role = 'admin' where email = 'TU_EMAIL';
+
+-- Fuera del API de PostgREST (no aparece en /rest/v1/rpc).
+create schema if not exists internal;
+revoke all on schema internal from public, anon;
+grant usage on schema internal to authenticated;
+
+-- ponytail: SECURITY DEFINER evita que RLS de profiles tape el chequeo de admin.
+create or replace function internal.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+revoke all on function internal.is_admin() from public, anon;
+grant execute on function internal.is_admin() to authenticated;
 
 -- =============================================================================
 -- RLS products
@@ -90,40 +114,20 @@ drop policy if exists "Admins can insert products" on public.products;
 create policy "Admins can insert products"
   on public.products for insert
   to authenticated
-  with check (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  with check (internal.is_admin());
 
 drop policy if exists "Admins can update products" on public.products;
 create policy "Admins can update products"
   on public.products for update
   to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  )
-  with check (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  using (internal.is_admin())
+  with check (internal.is_admin());
 
 drop policy if exists "Admins can delete products" on public.products;
 create policy "Admins can delete products"
   on public.products for delete
   to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  using (internal.is_admin());
 
 -- =============================================================================
 -- RLS profiles
@@ -148,6 +152,7 @@ grant select on public.profiles to authenticated;
 create or replace function public.protect_profile_role()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   -- Con sesión de usuario (anon/authenticated) nadie puede ponerse admin.
@@ -164,6 +169,8 @@ begin
 end;
 $$;
 
+revoke all on function public.protect_profile_role() from public, anon, authenticated;
+
 drop trigger if exists protect_profile_role on public.profiles;
 create trigger protect_profile_role
   before insert or update on public.profiles
@@ -177,10 +184,9 @@ insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)
 on conflict (id) do update set public = true;
 
+-- El bucket es público: la URL alcanza para ver el archivo. Sin SELECT en
+-- storage.objects, el cliente no puede listar todo el bucket.
 drop policy if exists "Public read product images" on storage.objects;
-create policy "Public read product images"
-  on storage.objects for select
-  using (bucket_id = 'product-images');
 
 drop policy if exists "Admins upload product images" on storage.objects;
 create policy "Admins upload product images"
@@ -188,10 +194,7 @@ create policy "Admins upload product images"
   to authenticated
   with check (
     bucket_id = 'product-images'
-    and exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
+    and internal.is_admin()
   );
 
 drop policy if exists "Admins update product images" on storage.objects;
@@ -200,10 +203,7 @@ create policy "Admins update product images"
   to authenticated
   using (
     bucket_id = 'product-images'
-    and exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
+    and internal.is_admin()
   );
 
 drop policy if exists "Admins delete product images" on storage.objects;
@@ -212,10 +212,7 @@ create policy "Admins delete product images"
   to authenticated
   using (
     bucket_id = 'product-images'
-    and exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
+    and internal.is_admin()
   );
 
 -- =============================================================================
@@ -262,69 +259,20 @@ create policy "Users can insert own orders"
 drop policy if exists "Users can update own orders" on public.orders;
 drop policy if exists "Users can delete own orders" on public.orders;
 
--- ponytail: SECURITY DEFINER evita que RLS de profiles tape el chequeo de admin.
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.profiles
-    where id = auth.uid() and role = 'admin'
-  );
-$$;
-
-revoke all on function public.is_admin() from public, anon;
-grant execute on function public.is_admin() to authenticated;
-
-create or replace function public.admin_list_orders()
-returns setof public.orders
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select * from public.orders
-  where public.is_admin()
-  order by created_at desc;
-$$;
-
-revoke all on function public.admin_list_orders() from public, anon;
-grant execute on function public.admin_list_orders() to authenticated;
-
-create or replace function public.admin_set_order_status(p_id uuid, p_status text)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if not public.is_admin() then
-    raise exception 'No autorizado';
-  end if;
-  if p_status not in ('pending', 'processing', 'completed', 'shipped') then
-    raise exception 'Estado inválido';
-  end if;
-  update public.orders
-  set fulfillment_status = p_status
-  where id = p_id;
-end;
-$$;
-
-revoke all on function public.admin_set_order_status(uuid, text) from public, anon;
-grant execute on function public.admin_set_order_status(uuid, text) to authenticated;
-
 drop policy if exists "Admins can read all orders" on public.orders;
 create policy "Admins can read all orders"
   on public.orders for select
   to authenticated
-  using (public.is_admin());
+  using (internal.is_admin());
 
 drop policy if exists "Admins can update orders" on public.orders;
 create policy "Admins can update orders"
   on public.orders for update
   to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
+  using (internal.is_admin())
+  with check (internal.is_admin());
+
+-- RPCs viejos: ya no hacen falta (RLS + internal.is_admin). Fuera del REST.
+drop function if exists public.admin_list_orders();
+drop function if exists public.admin_set_order_status(uuid, text);
+drop function if exists public.is_admin();

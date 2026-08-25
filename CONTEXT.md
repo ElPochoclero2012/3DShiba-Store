@@ -68,7 +68,7 @@ La tienda está **en el aire** en Vercel con productos reales. El circuito viejo
 
 ### En código, todavía sin testear / a verificar
 
-1. **Admin de pedidos** — SQL de `is_admin` / `admin_list_orders` / `fulfillment_status` **ya corrido** (2026-08-24). Falta probar en `/admin/pedidos`: pedidos de la cuenta `user` visibles con la cuenta `admin`, y cambiar estado.
+1. **Admin de pedidos** — RLS con `internal.is_admin()` (no RPC en `public`). Pedidos nuevos: pendientes sin `seen_at`.
 2. **Entrega en el carrito** — retiro/envío. Color u otro cambio: notas → WhatsApp. Sin plazos en la web.
 3. **Varias fotos por producto** — En admin se reordenan y eliminan (la primera es la principal). En la ficha: carrusel cada 6s con deslizamiento, flechas, clic para ampliar. Subida desde el navegador al bucket. JPEG se comprime a JPG; PNG/WebP conservan transparencia (WebP).
 4. **Pedidos nuevos** — pendientes sin `seen_at`. Badge en Admin / pestaña Pedidos. “Marcar como visto” o cambiar estado los saca del aviso.
@@ -112,8 +112,9 @@ Guía al tocar superficies existentes:
 
 ## Próximo paso
 
-1. Probar: pedido con cuenta `user` (sin chips de color; notas si hace falta) → admin ve **Nuevo** y el número en Pedidos/Admin → marcar visto o cambiar estado.
-2. Google: esperar indexación. Google Business Profile lo arma el dueño. Dominio propio: no por ahora.
+1. Correr `supabase/schema.sql` en el SQL Editor (cierra avisos de search_path, RPC DEFINER y listado del bucket). HaveIBeenPwned queda en Auth si el plan lo permite.
+2. Probar: login, fotos de producto, `/admin/pedidos` (siguen viéndose todos).
+3. Google: esperar indexación. Google Business Profile lo arma el dueño. Dominio propio: no por ahora.
 
 Vercel (cuenta `marce9`, proyecto `3dshiba-store`):
 

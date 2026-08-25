@@ -109,23 +109,14 @@ export async function createOrder(input: { items: CartItem[]; details: CheckoutD
 
 export async function listAdminOrders() {
   const { supabase, isAdmin } = await requireAdmin()
-  if (!isAdmin) return { error: 'No tenés permiso.', orders: [], needsSql: false }
-
-  const rpc = await supabase.rpc('admin_list_orders')
-  if (!rpc.error) {
-    return { orders: mapOrders(rpc.data), needsSql: false }
-  }
+  if (!isAdmin) return { error: 'No tenés permiso.', orders: [] }
 
   const { data, error } = await supabase
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
 
-  return {
-    orders: mapOrders(data),
-    error: error?.message,
-    needsSql: true,
-  }
+  return { orders: mapOrders(data), error: error?.message }
 }
 
 export async function setOrderStatus(orderId: string, status: OrderStatus) {
@@ -133,29 +124,25 @@ export async function setOrderStatus(orderId: string, status: OrderStatus) {
   if (!isAdmin) return { error: 'No tenés permiso.' }
   if (!orderId || !isOrderStatus(status)) return { error: 'Pedido o estado inválido.' }
 
-  const rpc = await supabase.rpc('admin_set_order_status', {
-    p_id: orderId,
-    p_status: status,
-  })
+  const { error } = await supabase
+    .from('orders')
+    .update({
+      fulfillment_status: status,
+      seen_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
 
-  if (rpc.error) {
-    const { error } = await supabase
-      .from('orders')
-      .update({ fulfillment_status: status })
-      .eq('id', orderId)
-    if (error) {
-      return {
-        error: error.message.includes('fulfillment_status') || rpc.error.message.includes('admin_set_order_status')
-          ? 'Falta correr el SQL de pedidos (estados + admin_list_orders) en supabase/schema.sql.'
-          : error.message,
-      }
+  if (error) {
+    return {
+      error: error.message.includes('fulfillment_status')
+        ? 'Falta correr el SQL de pedidos (fulfillment_status + internal.is_admin) en supabase/schema.sql.'
+        : error.message,
     }
   }
 
   revalidatePath('/admin/pedidos')
   revalidatePath('/admin/dashboard')
   revalidatePath('/cuenta')
-  await supabase.from('orders').update({ seen_at: new Date().toISOString() }).eq('id', orderId)
   return { success: true }
 }
 
